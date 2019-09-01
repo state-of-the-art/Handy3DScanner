@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+    <!-- Intel D400/PSR depth camera -->
+    <usb-device vendor-id="8086" product-id="0ad1"/>
+    <!-- Intel D410/ASR depth camera -->
+    <usb-device vendor-id="8086" product-id="0ad2"/>
+    <!-- Intel D415/ASRC depth camera -->
+    <usb-device vendor-id="8086" product-id="0ad3"/>
+    <!-- Intel D430/AWG depth camera -->
+    <usb-device vendor-id="8086" product-id="0ad4"/>
+    <!-- Intel D450/AWGT depth camera -->
+    <usb-device vendor-id="8086" product-id="0ad5"/>
+    <!-- Intel D420/PWG depth camera -->
+    <usb-device vendor-id="8086" product-id="0af6"/>
+    <!-- Intel D420_MM/PWGT depth camera -->
+    <usb-device vendor-id="8086" product-id="0afe"/>
+    <!-- Intel D410_MM/ASRT depth camera -->
+    <usb-device vendor-id="8086" product-id="0aff"/>
+    <!-- Intel D400_MM/PSRT depth camera -->
+    <usb-device vendor-id="8086" product-id="0b00"/>
+    <!-- Intel D430_MM/AWGCT depth camera -->
+    <usb-device vendor-id="8086" product-id="0b01"/>
+    <!-- Intel D460/DS5U depth camera -->
+    <usb-device vendor-id="8086" product-id="0b03"/>
+    <!-- Intel D435/AWGC depth camera -->
+    <usb-device vendor-id="8086" product-id="0b07"/>
+    <!-- Intel D435i depth camera -->
+    <usb-device vendor-id="8086" product-id="0b3a"/>
+    <!-- Intel SR300 depth camera -->
+    <usb-device vendor-id="8086" product-id="0aa5"/>
+    <!-- Intel D405 S depth camera -->
+    <usb-device vendor-id="8086" product-id="0b0c"/>
+    <!-- Intel L500 depth camera -->
+    <usb-device vendor-id="8086" product-id="0b0d"/>
+
+    <!-- Other Intel RealSense UVC cameras (R200, F200, LR200, ZR300) -->
+    <usb-device vendor-id="8086" product-id="0a80"/>
+    <usb-device vendor-id="8086" product-id="0a66"/>
+    <usb-device vendor-id="8086" product-id="0abf"/>
+    <usb-device vendor-id="8086" product-id="0acb"/>
+    <usb-device vendor-id="8086" product-id="0ad0"/>
+    <usb-device vendor-id="8086" product-id="04b4"/>
+    <usb-device vendor-id="8086" product-id="0ad6"/>
+
+    <usb-device vendor-id="8087" product-id="0af3"/>
+    <usb-device vendor-id="03e7" product-id="2150"/>
+</resources>

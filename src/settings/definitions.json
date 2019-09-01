@@ -1,0 +1,187 @@
+{
+    "UI": {
+        "Capture": {
+            "show_connection_type": {
+                "type": "boolean",
+                "default": true,
+                "description": "Display connection type info box over the Capture stream video"
+            },
+
+            "show_stream_fps": {
+                "type": "boolean",
+                "default": true,
+                "description": "Display stream frames per second info box over the Capture stream video"
+            },
+
+            "show_stream_fpt": {
+                "type": "boolean",
+                "default": true,
+                "description": "Display stream frames processing time (nsec) info box over the Capture stream video"
+            },
+
+            "show_stream_fwt": {
+                "type": "boolean",
+                "default": true,
+                "description": "Display stream frame wait time (nsec) info box over the Capture stream video"
+            }
+        },
+
+        "Edit": {
+            "PointCloud": {
+                "point_size": {
+                    "type": "float_range",
+                    "default": 1.0,
+                    "min": 0.1,
+                    "max": 10.0,
+                    "step": 0.01,
+                    "description": "Pointcloud rasterized point size on the screen"
+                },
+
+                "point_min_invalid_z": {
+                    "type": "float_range",
+                    "default": 0.01,
+                    "min": 0.01,
+                    "max": 10.0,
+                    "step": 0.01,
+                    "description": "Invalidation of points too close to camera"
+                },
+
+                "point_max_invalid_z": {
+                    "type": "float_range",
+                    "default": 10.0,
+                    "min": 0.01,
+                    "max": 1000.0,
+                    "step": 0.01,
+                    "description": "Invalidation of close to camera points"
+                }
+            },
+
+            "display_mode": {
+                "type": "choice",
+                "default": "POINTS",
+                "list": [
+                    "POINTS",
+                    "TRIANGLES"
+                ],
+                "description": "Current mode of displaying the pointclouds"
+            }
+        },
+
+        "show_advise_messages": {
+            "type": "boolean",
+            "default": true,
+            "description": "Show advise notifications"
+        }
+    },
+
+    "Camera": {
+        "Streams": {
+            "enable_color_stream": {
+                "type": "boolean",
+                "default": true,
+                "description": "Start color stream together with depth stream when camera connected"
+            },
+
+            "Depth": {
+                "use_disparity_filter": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enables disparity transformation during depth frame processing"
+                },
+
+                "use_spatial_filter": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enables spatial filtering during depth frame processing"
+                },
+
+                "use_temporal_filter": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enables temporal filtering during depth frame processing"
+                }
+            }
+        },
+
+        "Realsense": {
+            "offset_x": {
+                "type": "float_range",
+                "default": 0.04,
+                "min": -0.5,
+                "max": 0.5,
+                "step": 0.001,
+                "description": "Camera offset from the phone origin x axis"
+            },
+            "offset_y": {
+                "type": "float_range",
+                "default": 0.0,
+                "min": -0.5,
+                "max": 0.5,
+                "step": 0.001,
+                "description": "Camera offset from the phone origin y axis"
+            },
+            "offset_z": {
+                "type": "float_range",
+                "default": 0.0215,
+                "min": -0.5,
+                "max": 0.5,
+                "step": 0.001,
+                "description": "Camera offset from the phone origin z axis"
+            }
+        }
+    },
+
+    "Position": {
+        "ARCore": {
+            "enable_arcore": {
+                "type": "boolean",
+                "default": true,
+                "description": "Initialize arcore positioning during the application start"
+            }
+        },
+
+        "Gyroscope": {
+            "enable_gyroscope": {
+                "type": "boolean",
+                "default": true,
+                "description": "Use available gyroscope to capture the pointcloud rotation"
+            }
+        }
+    },
+
+    "Save": {
+        "PCD": {
+            "compress_file": {
+                "type": "boolean",
+                "default": true,
+                "description": "Enables compression of the PCD file"
+            }
+        },
+
+        "glTF2": {
+            "compress_file": {
+                "type": "boolean",
+                "default": true,
+                "description": "Enables draco compression of the glTF buffers"
+            },
+
+            "compress_speed": {
+                "type": "integer_range",
+                "default": 0,
+                "min": 0,
+                "max": 10,
+                "step": 1,
+                "description": "Less speed means better compression"
+            },
+
+            "compress_quality": {
+                "type": "integer_range",
+                "default": 16,
+                "min": 8,
+                "max": 24,
+                "step": 1,
+                "description": "Number of bits used for quantization - more means better quality"
+            }
+        }
+    }
+}

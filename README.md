@@ -2,19 +2,24 @@
 
 General purpose 3d scaner based on Intel Realsense D400 cameras.
 
-Right now just a repo to track the current plans - but later the source code will be published here.
+Application to help build a cheap 3d scanner based on Intel RealSense D415/D435 cameras and your android smartphone, tablet or laptop.
 
 * [Site page about it](https://www.state-of-the-art.io/projects/handy-3d-scanner/)
 * [GooglePlay store](https://play.google.com/store/apps/details?id=io.stateoftheart.handy3dscanner)
 
+## Usage
+
+Please check out the wiki page: https://github.com/state-of-the-art/Handy3DScanner/wiki
+
 ## Requirements
 
 * Host:
-  * **Smartphone** - anything with Android 5+ (Lollipop or better) and usb3 host is ok (*later usb2 will be supported*)
+  * **Smartphone / Tablet** - anything with Android 5+ (Lollipop or better) and usb3 or usb2 host (camera need ~1000mA)
   * **Linux workstation** - Ubuntu LTS, Debian, CentOS...
-* **Intel Realsense D400** - stereo camera with D4 board (right now tested D415, but D435 also should be ok)
-* **USB-C/USB-C cable** - USB3.1 Gen 1 should work properly (*seems could also work on usb2 + 5V1A cable*)
-* **Handy 3D Scanner** - application piece, published in Android store and available for workstations.
+  * **Linux SBC** - for small boards it also should work
+* **Intel Realsense D400** - stereo camera with D4 board (right tested D415 and D435i)
+* **USB-C/USB-C cable** - USB3.1 Gen 1 should work properly or you can use usb2 for low speed capture
+* **Handy 3D Scanner** - application piece, binaries published in Android store (paid) and available for workstations (opensource).
 
 ## Application
 
@@ -86,18 +91,133 @@ But overall we have a huge plans to make this application better!
 * **Kickstarter campagin** - customers want to see the complete product - so why not?
 * **Publish source code** - necessary to make sure the project will live it's long life.
 * **Reach the top** - the market could be bigger, any smartphone should get this feature
-  because AR/VR is coming. So Handy 3D Scanner can help with building the new future where
-  everyone will take not just photo, but capture part of the 3d world and place it in VR.
+  because AR/VR is coming (check Samsung Galaxy Note 10). Handy 3D Scanner can help with
+  building the new future where everyone will take not just photo, but capture part of
+  the 3d world and place it in VR.
 
-### OpenSource
+## OpenSource
 
-We have plans to publish full source code on github to make sure application will live for a long time.
+This is an experimental project - main goal is to test State Of The Art philosophy on practice.
 
-This is an exprerimental project - main goal is to test State Of The Art philosophy on practice.
+We would like to see a number of independent developers working on the same project issues
+for the real money (attached to the ticket) or just for fun. So let's see how this will work.
 
-So for now we starting with closed source & Android PlayStore, but when there will
-be something to show - source code will be opened and we will start to actually search developers
-in opensource community to help with implementation some non-standard logic with `pc` procesing.
+### License
+
+Repository and it's content is covered by `Apache v2.0` - so anyone can use it without any concerns.
+
+If you will have some time - it will be great to see your changes merged to the original repository -
+but it's your choise, no pressure.
+
+### Build
+
+Build process is quite hard, but requires a minimum dependencies (cmake will get all the requirements
+automatically).
+
+*NOTICE*: Qt 5.12.4, 5.12.5 and 5.13.0 have an issue with gyro (QTBUG-77423) - so please use 5.12.3
+if you want to use gyroscope.
+
+#### Build in docker
+
+##### For desktop
+
+1. Clone the repository:
+    ```
+    host$ git clone https://github.com/state-of-the-art/Handy3DScanner.git ~/Build/Handy3DScanner
+    ```
+2. Run the docker container:
+    ```
+    host$ cd ~/Build/Handy3DScanner
+    host$ docker run -it --rm --name h3ds-build --volume="${PWD}:/home/user/project" rabits/qt:5.13-desktop
+    ```
+3. Install the required dependencies:
+    ```
+    docker$ sudo apt update
+    docker$ sudo apt install -y libusb-1.0-0-dev
+    ```
+4. Create build directory:
+    ```
+    docker$ mkdir project/build
+    docker$ cd project/build
+    ```
+5. Generate the build scripts
+    ```
+    docker$ cmake .. -G Ninja "-DCMAKE_PREFIX_PATH:PATH=${QT_DESKTOP}"
+    ```
+6. Build the binaries:
+    ```
+    docker$ cmake --build .
+    ```
+7. You can find the compiled binaries in the `build` directory
+
+##### For android
+
+1. Clone the repository:
+    ```
+    host$ git clone https://github.com/state-of-the-art/Handy3DScanner.git ~/Build/Handy3DScanner
+    ```
+2. Run the docker container (use `-armv7` if you need armv7 binaries):
+    ```
+    host$ cd ~/Build/Handy3DScanner
+    host$ docker run -it --rm --name h3ds-build --volume="${PWD}:/home/user/project" rabits/qt:5.13-android-arm64
+    ```
+3. Install the required dependencies (build-essential for boost build system):
+    ```
+    docker$ sudo apt update
+    docker$ sudo apt install -y imagemagick build-essential
+    ```
+4. Create build directory:
+    ```
+    docker$ mkdir project/build
+    docker$ cd project/build
+    ```
+5. Generate the build scripts
+    ```
+    docker$ cmake .. -G Ninja "-DCMAKE_PREFIX_PATH:PATH=${QT_ANDROID}" "-DCMAKE_TOOLCHAIN_FILE:PATH=${ANDROID_NDK_ROOT}/build/cmake/android.toolchain.cmake" "-DANDROID_ABI:STRING=${ANDROID_NDK_TOOLCHAIN_ABI}" -DANDROID_NATIVE_API_LEVEL:STRING=29
+    ```
+6. Build the binaries:
+    ```
+    docker$ cmake --build .
+    ```
+7. Debug APK will be created automatically with help of `tools/build-apk.sh` - and you will see where it's 
+
+#### Build on host
+
+You can use your host:
+
+##### Dependencies
+
+* Ubuntu 18.04 (build is tested only using ubuntu, but you can try something else)
+* CMake 3.10
+* Ninja (optional, but helpful)
+* Qt SDK 5.12 or 5.13
+* build-essential (is needed to build host binaries, even for android boost requires to compile the build system)
+* android:
+  * Android SDK android-29 (actually could be built on 21-29 API levels)
+  * Android NDK r20
+  * Imagemagick (using `convert` to generate png out of svg)
+* desktop:
+  * libusb-1.0-0-dev (on android we using jni interface, but on desktop the native one)
+
+##### Variables
+
+Already set in the docker images, but you need to set them to build on the host system (there is an examples, you need to choose yours):
+
+* `QT_DESKTOP`: "~/local/Qt/5.13.0/gcc_64" - path to the Qt desktop binaries
+* `QT_ANDROID`: "~/local/Qt/5.13.0/android_armv7" - path to the Qt android binaries
+* `ANDROID_NDK_PLATFORM`: "android-29" - what the platform to use while android apk build
+* `ANDROID_NDK_ROOT`: "~/local/android-sdk/ndk-bundle" - path to the Android NDK
+* `ANDROID_NDK_TOOLCHAIN_ABI`: "armeabi-v7a", "arm64-v8a" - binary type
+
+To build the APK for android you need to set the next env variables in addition:
+
+* `ANDROID_SDK_ROOT`: "/opt/android-sdk" - path to the android sdk
+* `ANDROID_NDK_HOST`: "linux-x86_64" - ndk host platform
+* `ANDROID_SDK_BUILD_TOOLS`: "29.0.1" - version of the sdk build-tools will be used
+
+##### Build
+
+Just follow the docker instructions (but without docker) - and you will be good.
 
 ## Privacy policy
 

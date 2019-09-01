@@ -1,0 +1,33 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qml/Capture.qml</file>
+        <file>qml/ColorCamera.qml</file>
+        <file>qml/Edit.qml</file>
+        <file>qml/EditMenu.qml</file>
+        <file>qml/EditMenuButton.qml</file>
+        <file>qml/MiniAxis.qml</file>
+        <file>qml/MiniAxisScene.qml</file>
+        <file>qml/Notification.qml</file>
+        <file>qml/PointCloudView.qml</file>
+        <file>qml/Settings.qml</file>
+        <file>qml/Settings/BooleanItem.qml</file>
+        <file>qml/Settings/ChoiceItem.qml</file>
+        <file>qml/Settings/FloatRangeItem.qml</file>
+        <file>qml/Settings/IntegerRangeItem.qml</file>
+        <file>qml/Settings/TreeItem.qml</file>
+        <file>qml/fonts/icons.ttf</file>
+        <file>qml/js/common.js</file>
+        <file>qml/js/tool/cameraViewPoint.js</file>
+        <file>qml/js/tool/deletePoints.js</file>
+        <file>qml/js/tool/selectPoint.js</file>
+        <file>qml/js/tool/selectRectangle.js</file>
+        <file>qml/js/tool/tool.js</file>
+        <file>qml/main.qml</file>
+        <file>qml/shaders/es3/pointcloud.frag</file>
+        <file>qml/shaders/es3/pointcloud.vert</file>
+        <file>settings/definitions.json</file>
+        <file>settings/type/choice.jss</file>
+        <file>settings/type/float_range.jss</file>
+        <file>settings/type/integer_range.jss</file>
+    </qresource>
+</RCC>

@@ -1,0 +1,12 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+new file mode 100644
+index 0000000..f90dd52
+--- /dev/null
++++ b/CMakeLists.txt
+@@ -0,0 +1,6 @@
++# LZ4 minimal
++cmake_minimum_required(VERSION 3.5.1)
++project(lz4)
++
++add_library(${PROJECT_NAME} lib/lz4.c)
++target_include_directories(${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib>)

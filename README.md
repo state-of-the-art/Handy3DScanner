@@ -9,7 +9,7 @@ Application to help build a cheap 3d scanner based on Intel RealSense D415/D435 
 
 ## Usage
 
-Please check out the wiki page: https://github.com/state-of-the-art/Handy3DScanner/wiki
+Please check out the wiki page: [Wiki](https://github.com/state-of-the-art/Handy3DScanner/wiki)
 
 ## Requirements
 
@@ -27,22 +27,18 @@ Please check out the wiki page: https://github.com/state-of-the-art/Handy3DScann
 
 Basically have just 3 main functions:
 * **Capture** - allow to get shots and records of the environment
-  * Single shot mode -
-    Just getting shot of the current view and converting it to pointcloud (`pc`)
-  * Record mode (*in dev*) -
+  * General mode
+    you can take pointclouds capturing your surrounding with a proper positioning of the
+    shots (gyroscope or arcore positioning).
+  * Record mode (*in dev*)
     Useful for experimenting with AI, but consumes alot of memory
-  * Walk-around mode (*in dev*) -
-    to capture relatively small objects and humans just walking around and taking pictures
-  * Panorama mode (*uses phone `gyro` to get panorama*) -
-    allow to capture panoramas & huge environments around the camera
-* **View/Edit** - shows what `pc` you have and allow to edit them
+* **Preview** - shows what `pc` you captured
   * List of the captured `pc`
-  * Show/Hide `pc` from the list
+  * Show/Hide pointclouds
   * Camera controls: rotation, zoom, focus to point
-  * Selection of `pc` points: single, line, box
-  * Hide points: selected or unselected
-  * Delete points: selected or unselected
 * **Load/Save** - when we would like to view or store `pc` or mesh
+  * Individual pointclouds - store in PCD format as point of clouds for the further processing
+  * Export visible - save the whole 3d scene as glTF 2.0 glb file to import it in 3d edit software or share
 
 Also there will be settings, skeletal animation and other stuff.
 
@@ -60,9 +56,12 @@ Also there will be settings, skeletal animation and other stuff.
 * Easy capture from Intel Realsense D415/D435
 * Full available camera resolution (D415 1280x720 points)
 * Preview of the captured point clouds (pc)
-* Save captured pc in PCD format (to internal app dir)
-* Simple pc edit tools
-* Gyro-based panoramic shots (need improvement)
+* Save captured pc in PCD format and export scene to glTF 2.0
+* ARCore-based camera positioning
+
+### Example data
+
+You can find the examples & PCD/glb files on the wiki page: [Example data](https://github.com/state-of-the-art/Handy3DScanner/wiki/Example-data)
 
 ## Price
 

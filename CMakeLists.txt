@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(handy3dscanner LANGUAGES CXX VERSION 0.5.1)
+project(handy3dscanner LANGUAGES CXX VERSION 0.5.2)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -69,6 +69,16 @@ if(ANDROID)
 
     target_link_libraries(${PROJECT_NAME} PRIVATE Qt5::AndroidExtras GLESv3)
 
-    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                       COMMAND sh "${CMAKE_SOURCE_DIR}/tools/build-apk.sh" $<TARGET_FILE:handy3dscanner> ${ANDROID_EXTRA_LIBS} ${ANDROID_PACKAGE_SOURCE_DIR})
+    # qtcreator cmake android deployment don't want to set sdkBuildToolsRevision
+    add_custom_command(
+        TARGET ${PROJECT_NAME} POST_BUILD
+        BYPRODUCTS notexisting.file # To build the package anyway
+        COMMAND ${CMAKE_COMMAND} -E env
+            ANDROID_KEYSTORE_FILE="${CMAKE_SOURCE_DIR}/android.keystore"
+            QT_ANDROID="${CMAKE_PREFIX_PATH}"
+            ANDROID_SDK_BUILD_TOOLS=29.0.1
+            ANDROID_NDK_TOOLCHAIN_ABI=${ANDROID_ABI}
+            QML_ROOT_PATH="${CMAKE_SOURCE_DIR}"
+            sh "${CMAKE_SOURCE_DIR}/tools/build-apk.sh" $<TARGET_FILE:handy3dscanner> ${ANDROID_EXTRA_LIBS} ${ANDROID_PACKAGE_SOURCE_DIR}
+    )
 endif()

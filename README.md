@@ -68,15 +68,11 @@ You can find the examples & PCD/glb files on the wiki page: [Example data](https
 * Professional 3d scanners: ~$10'000 - $20'000.
 * Table laser scanners: ~$70 - $500.
 
-With Intel Realsense D415 (~$140) and mobile app we can get a simple and cheap solution to provide a really
-cheap mid-range HD solution with advanced specifications:
+With Intel Realsense D415 (~$140) and mobile app we can get a really cheap mid-range HD scanner solution:
 * Resolution: 1Mpix (1280x720)
 * Frame-rate: 30-60 fps
 * Angle: 63°x40°, 85°x58°
 * Range: 16cm-10m, 11cm-10m
-
-Means that finally for ~$200 users can get simple solution to build second instagram, now in 3D - and the
-last piece is just a userspace software.
 
 ### Plans
 
@@ -158,7 +154,7 @@ if you want to use gyroscope.
 2. Run the docker container (use `-armv7` if you need armv7 binaries):
     ```
     host$ cd ~/Build/Handy3DScanner
-    host$ docker run -it --rm --name h3ds-build --volume="${PWD}:/home/user/project" rabits/qt:5.13-android-arm64
+    host$ docker run -it --rm --volume="${PWD}:/home/user/project" rabits/qt:5.13-android-arm64
     ```
 3. Install the required dependencies (build-essential for boost build system):
     ```

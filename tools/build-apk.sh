@@ -14,7 +14,10 @@ echo "build-apk configuration:
 - QT_ANDROID=${QT_ANDROID}
 - ANDROID_NDK_HOST=${ANDROID_NDK_HOST}
 - ANDROID_NDK_TOOLCHAIN_ABI=${ANDROID_NDK_TOOLCHAIN_ABI}
+- ANDROID_NDK_PLATFORM=${ANDROID_NDK_PLATFORM}
 - ANDROID_SDK_BUILD_TOOLS=${ANDROID_SDK_BUILD_TOOLS}
+- ANDROID_KEYSTORE_FILE=${ANDROID_KEYSTORE_FILE}
+- QML_ROOT_PATH=${QML_ROOT_PATH}
 "
 [ -f "${APP_BINARY}" ] || exit 1
 [ "${EXTRA_LIBS}" ] || exit 2
@@ -26,6 +29,11 @@ echo "build-apk configuration:
 [ "${ANDROID_NDK_HOST}" ] || exit 0
 [ "${ANDROID_NDK_TOOLCHAIN_ABI}" ] || exit 0
 [ "${ANDROID_SDK_BUILD_TOOLS}" ] || exit 0
+
+if [ "$(echo "${ANDROID_NDK_PLATFORM}" | cut -d- -f 2)" -lt 21 ]; then
+    echo "ERROR: ANDROID_NDK_PLATFORM version less than 21 is not supported"
+    exit 4
+fi
 
 build_libs="android-build/libs/${ANDROID_NDK_TOOLCHAIN_ABI}"
 mkdir -p "${build_libs}"
@@ -45,10 +53,21 @@ cat > android_deployment_settings.json <<EOF
   "sdkBuildToolsRevision": "${ANDROID_SDK_BUILD_TOOLS}",
   "stdcpp-path": "${ANDROID_NDK_ROOT}/sources/cxx-stl/llvm-libc++/libs/${ANDROID_NDK_TOOLCHAIN_ABI}/libc++_shared.so",
   "target-architecture": "${ANDROID_NDK_TOOLCHAIN_ABI}",
+  "qml-root-path": "${QML_ROOT_PATH}",
   "tool-prefix": "llvm",
   "toolchain-prefix": "llvm",
   "useLLVM": true
 }
 EOF
 
-"${QT_ANDROID}/bin/androiddeployqt" --gradle --input android_deployment_settings.json --output android-build --android-platform ${ANDROID_NDK_PLATFORM}
+if [ -f "${ANDROID_KEYSTORE_FILE}" ]; then
+    keystore_params="--sign ${ANDROID_KEYSTORE_FILE} state-of-the-art"
+    if [ -z "${ANDROID_KEYSTORE_PASSWORD_COMMAND}" ]; then
+        # No spaces in password are supported...
+        keystore_params="${keystore_params} --storepass $(zenity --password --title="android keystore password" --modal | tr -d "[:space:]")"
+    else
+        keystore_params="${keystore_params} --storepass $(${ANDROID_KEYSTORE_PASSWORD_COMMAND})"
+    fi
+fi
+
+"${QT_ANDROID}/bin/androiddeployqt" --input android_deployment_settings.json --output android-build --android-platform "${ANDROID_NDK_PLATFORM}"  --gradle --no-gdbserver ${keystore_params}

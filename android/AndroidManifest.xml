@@ -8,7 +8,8 @@
                                ||**    - minor version %02d
                                **      - major version %02d -->
 
-    <uses-sdk android:minSdkVersion="21" android:targetSdkVersion="28"/>
+    <!-- TargetSDKVersion set to 27, because of the issue https://github.com/state-of-the-art/Handy3DScanner/issues/68 -->
+    <uses-sdk android:minSdkVersion="21" android:targetSdkVersion="27"/>
     <supports-screens android:largeScreens="true" android:normalScreens="true" android:anyDensity="true" android:smallScreens="true"/>
 
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>

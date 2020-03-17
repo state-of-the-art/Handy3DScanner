@@ -70,4 +70,5 @@ if [ -f "${ANDROID_KEYSTORE_FILE}" ]; then
     fi
 fi
 
-"${QT_ANDROID}/bin/androiddeployqt" --input android_deployment_settings.json --output android-build --android-platform "${ANDROID_NDK_PLATFORM}"  --gradle --no-gdbserver ${keystore_params}
+# Changing unmet dependencies from error to warning in QTCreator
+"${QT_ANDROID}/bin/androiddeployqt" --input android_deployment_settings.json --output android-build --android-platform "${ANDROID_NDK_PLATFORM}"  --gradle --no-gdbserver ${keystore_params} 2>&1 | sed 's|It has unmet dependencies:|It has unmet dependencies: warning:|'

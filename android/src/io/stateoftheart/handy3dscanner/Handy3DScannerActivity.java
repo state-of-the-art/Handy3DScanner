@@ -19,32 +19,35 @@ import android.util.Log;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
+import android.os.Build;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import org.qtproject.qt5.android.bindings.QtActivity;
 
 public class Handy3DScannerActivity extends QtActivity
 {
-    private static Handy3DScannerActivity m_instance;
     private String TAG = "Handy3DScanner";
-    private static final int MY_PERMISSIONS_REQUEST_CAMERA = 0;
+    private static final int MY_PERMISSIONS_REQUEST_CAMERA = 10;
 
     private static final String ACTION_USB_PERMISSION = "com.android.example.USB_PERMISSION";
     private PendingIntent mPermissionIntent;
     private UsbManager manager;
     private UsbDeviceConnection connection;
-    private HashMap<Integer, Integer> connectedDevices;
+    private HashMap<Integer, Integer> connectedDevices = new HashMap<Integer, Integer>();
 
     public Handy3DScannerActivity()
     {
-        m_instance = this;
-
-        connectedDevices = new HashMap<Integer, Integer>();
+        super();
+        Log.d(TAG, "ANDROID BASE_OS    : " + Build.VERSION.BASE_OS);
+        Log.d(TAG, "ANDROID CODENAME   : " + Build.VERSION.CODENAME);
+        Log.d(TAG, "ANDROID INCREMENTAL: " + Build.VERSION.INCREMENTAL);
+        Log.d(TAG, "ANDROID RELEASE    : " + Build.VERSION.RELEASE);
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        Log.d(TAG, "onRequestPermissionsResult");
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, MY_PERMISSIONS_REQUEST_CAMERA);
         }

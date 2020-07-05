@@ -4,7 +4,7 @@
 #include <QTemporaryDir>
 #include <QStandardPaths>
 
-#include "gltf2/exporter.h"
+//#include "gltf2/exporter.h"
 #include "application.h"
 #include "settings.h"
 #ifdef ANDROID
@@ -46,7 +46,8 @@ bool SceneFile::saveScene(Qt3DCore::QEntity *scene, const QString &file_path)
 #endif
 
     try {
-        GLTF2::Exporter exporter;
+        // TODO: Recover functionality
+        /*GLTF2::Exporter exporter;
         exporter.setScene(scene);
         exporter.setExportOption(QStringLiteral("mesh_compression"), Settings::I()->val("Save.glTF2.compress_file").toBool());
         exporter.setExportOption(QStringLiteral("draco.encoding_speed"), Settings::I()->val("Save.glTF2.compress_speed").toInt());
@@ -58,7 +59,7 @@ bool SceneFile::saveScene(Qt3DCore::QEntity *scene, const QString &file_path)
         exporter.setExportOption(QStringLiteral("draco.quantization.generic"), Settings::I()->val("Save.glTF2.compress_quality").toInt());
 
         QByteArray data = exporter.processScene();
-        file.write(data);
+        file.write(data);*/
     } catch( ... ) {
         Application::I()->error(QStringLiteral("Exception happened during export the scene: %1").arg(file_path));
         file.remove();

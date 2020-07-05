@@ -6,11 +6,11 @@
 #include <QLoggingCategory>
 
 #include "pointcloudexception.h"
-#include "src/settings.h"
-#include "lib/pcl/lzf.h"
+#include "settings.h"
+//#include "lib/pcl/lzf.h"
 
 #ifdef ANDROID
-#include "src/androidwrapper.h"
+#include "androidwrapper.h"
 #endif
 
 #include <Qt3DRender/QBuffer>
@@ -46,7 +46,7 @@ PointCloud::PointCloud(QObject *parent) :
     index_buffer(new QBuffer(QBuffer::IndexBuffer, geometry)),
     index_attribute(new QAttribute()),
     index_number(0),
-    index_enabled(Settings::I()->val("UI.Edit.display_mode").toString() != QLatin1Literal("POINTS")),
+    index_enabled(Settings::I()->val("UI.Edit.display_mode").toString() != QStringLiteral("POINTS")),
     options_buffer(new QBuffer(QBuffer::VertexBuffer, geometry)),
     options_attribute(new QAttribute())
 {
@@ -265,7 +265,8 @@ PointCloud* PointCloud::loadPCD(QString filepath)
         if( quint32(to_decompress.size()) != compressed_size )
             throw PointCloudException(QString("Not enough compressed data in the file: %1 (expected %2)").arg(to_decompress.size()).arg(compressed_size));
         QByteArray data(data_size, Qt::Uninitialized);
-        if( data_size != pcl::lzfDecompress(to_decompress.data(), compressed_size, data.data(), data_size) )
+        // TODO: Restore functional
+        //if( data_size != pcl::lzfDecompress(to_decompress.data(), compressed_size, data.data(), data_size) )
             throw PointCloudException("Error during decompression the data");
 
         // Reading the xxyyzz vertex data
@@ -407,20 +408,22 @@ void PointCloud::writePCDBinaryCompressed(QFile *file) const
 
     // Compress the data
     QByteArray temp_buf(data_size * 3 / 2 + 8, Qt::Uninitialized);
-    quint32 compressed_size = pcl::lzfCompress(to_compress.data(), data_size, temp_buf.data(), data_size * 3 / 2);
-    if( compressed_size == 0 ) {
+    // TODO: Restore functional
+    //quint32 compressed_size = pcl::lzfCompress(to_compress.data(), data_size, temp_buf.data(), data_size * 3 / 2);
+    //if( compressed_size == 0 ) {
         qCWarning(pc, "Compression failed");
         return;
-    }
+    //}
 
-    qCDebug(pc) << "Data size:" << data_size << QByteArray(reinterpret_cast<const char *>(&data_size), 4).toHex()
+    // TODO: Restore functional
+    /*qCDebug(pc) << "Data size:" << data_size << QByteArray(reinterpret_cast<const char *>(&data_size), 4).toHex()
              << "Compressed:" << compressed_size << QByteArray(reinterpret_cast<const char *>(&compressed_size), 4).toHex();
 
     temp_buf.prepend(reinterpret_cast<const char *>(&data_size), qint8(sizeof(quint32)));
     temp_buf.prepend(reinterpret_cast<const char *>(&compressed_size), qint8(sizeof(quint32)));
     temp_buf.resize(compressed_size + 8);
 
-    file->write(temp_buf);
+    file->write(temp_buf);*/
 }
 
 void PointCloud::setVertexBuffer(const QByteArray &data)

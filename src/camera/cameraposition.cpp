@@ -1,9 +1,9 @@
 #include "cameraposition.h"
 
-#include "src/settings.h"
-#include "src/application.h"
+#include "settings.h"
+#include "application.h"
 #ifdef ANDROID
-#include "src/provider/arcore/arcore.h"
+//#include "provider/arcore/arcore.h"
 #endif
 
 #include <QDebug>

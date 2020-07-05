@@ -10,17 +10,18 @@
 #include "application.h"
 
 #include "videoplayer.h"
-#include "src/provider/realsense/rscamera.h"
+#include "camera/depthcamera.h"
+//#include "provider/realsense/rscamera.h"
 #include "camera/cameraposition.h"
 #include "scenefile.h"
 
 #include <QOpenGLContext>
 
 #ifdef ANDROID
-#include "provider/arcore/arcore.h"
+//#include "provider/arcore/arcore.h"
 #include "androidwrapper.h"
 #else
-#include "src/linuxwrapper.h"
+#include "linuxwrapper.h"
 #endif
 
 bool OGLSupports(int major, int minor)
@@ -90,7 +91,8 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("app", Application::I());
 
     qDebug("[h3ds] Init camera...");
-    engine.rootContext()->setContextProperty("camera", RSCamera::I());
+    // TODO: Restore functional
+    //engine.rootContext()->setContextProperty("camera", RSCamera::I());
     engine.rootContext()->setContextProperty("cameraPos", CameraPosition::I());
 
     engine.rootContext()->setContextProperty("sceneFile", SceneFile::I());
@@ -123,7 +125,9 @@ int main(int argc, char *argv[])
 #endif
     SceneFile::destroyI();
     CameraPosition::destroyI();
-    RSCamera::destroyI();
+    // TODO: Restore functional
+    //RSCamera::destroyI();
+
     //Application::destroyI();
     Settings::destroyI();
 

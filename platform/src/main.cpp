@@ -99,7 +99,8 @@ int main(int argc, char *argv[])
 
     // TODO: H3DS-27 Create universal built-in file/dir picker
 #ifdef ANDROID
-    engine.rootContext()->setContextProperty("arcore", ARCore::I());
+    // TODO: Restore functional
+    //engine.rootContext()->setContextProperty("arcore", ARCore::I());
     engine.rootContext()->setContextProperty("fileOpener", AndroidWrapper::I());
 #else
     engine.rootContext()->setContextProperty("fileOpener", LinuxWrapper::I());
@@ -118,7 +119,8 @@ int main(int argc, char *argv[])
     int ret = Application::I()->exec();
 
 #ifdef ANDROID
-    ARCore::destroyI();
+    // TODO: Restore functional
+    //ARCore::destroyI();
     AndroidWrapper::destroyI();
 #else
     LinuxWrapper::destroyI();

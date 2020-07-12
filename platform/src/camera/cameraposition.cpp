@@ -28,8 +28,9 @@ CameraPosition::CameraPosition(QObject *parent)
     if( Settings::I()->val("Position.Gyroscope.enable_gyroscope").toBool() )
         checkGyro();
 #ifdef ANDROID
-    if( Settings::I()->val("Position.ARCore.enable_arcore").toBool() )
-        QObject::connect(ARCore::I(), &ARCore::initializedChanged, this, &CameraPosition::initARCore);
+    // TODO: Restore functional
+    //if( Settings::I()->val("Position.ARCore.enable_arcore").toBool() )
+    //    QObject::connect(ARCore::I(), &ARCore::initializedChanged, this, &CameraPosition::initARCore);
 #endif
 }
 
@@ -40,7 +41,8 @@ CameraPosition::~CameraPosition()
 }
 
 #ifdef ANDROID
-void CameraPosition::initARCore()
+// TODO: Restore functional
+/*void CameraPosition::initARCore()
 {
     qCDebug(camerapos, "Init ARCore positioning...");
     if( m_rotation_sensor )
@@ -50,7 +52,7 @@ void CameraPosition::initARCore()
     setSupportRotation(true);
 
     QObject::connect(ARCore::I(), &ARCore::cameraTransformChanged, this, &CameraPosition::setARCore);
-}
+}*/
 #endif
 
 void CameraPosition::checkGyro()
@@ -90,7 +92,8 @@ void CameraPosition::resetTranslation()
 }
 
 #ifdef ANDROID
-void CameraPosition::setARCore()
+// TODO: Restore functional
+/*void CameraPosition::setARCore()
 {
     QQuaternion new_quaternion(ARCore::I()->getCameraQuaternion());
     QVector3D new_translation(ARCore::I()->getCameraTranslation());
@@ -106,7 +109,7 @@ void CameraPosition::setARCore()
 
     emit quaternionChanged();
     emit translationChanged();
-}
+}*/
 #endif
 
 void CameraPosition::setGyro()

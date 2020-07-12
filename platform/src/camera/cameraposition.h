@@ -36,7 +36,8 @@ signals:
 
 private slots:
 #ifdef ANDROID
-    void setARCore();
+    // TODO: Restore functional
+    //void setARCore();
 #endif
     void checkGyro();
     void setGyro();
@@ -47,7 +48,8 @@ private:
     ~CameraPosition() override;
 
 #ifdef ANDROID
-    void initARCore();
+    // TODO: Restore functional
+    //void initARCore();
 #endif
     void initGyro();
 

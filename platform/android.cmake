@@ -14,8 +14,8 @@ FUNCTION(PAD_STRING OUT_VARIABLE DESIRED_LENGTH FILL_CHAR VALUE)
 ENDFUNCTION()
 
 if(ANDROID)
-  file(COPY android DESTINATION "${CMAKE_BINARY_DIR}")
-  file(READ android/AndroidManifest.xml manifest_data)
+  file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/android" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+  file(READ "${CMAKE_CURRENT_BINARY_DIR}/android/AndroidManifest.xml" manifest_data)
 
   # Replace PROJECT_VERSION
   string(REPLACE "{{ PROJECT_VERSION }}" "${PROJECT_VERSION}" manifest_data "${manifest_data}")
@@ -47,10 +47,10 @@ if(ANDROID)
   string(REPLACE "{{ PROJECT_ARCH_CODE }}" "${arch_code}" manifest_data "${manifest_data}")
 
   # Write AndroidManifest.xml back
-  file(WRITE "${CMAKE_BINARY_DIR}/android/AndroidManifest.xml" "${manifest_data}")
+  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/android/AndroidManifest.xml" "${manifest_data}")
 
   # Generating icons
-  set(icon_svg "${CMAKE_SOURCE_DIR}/icon.svg")
+  set(icon_svg "${CMAKE_CURRENT_SOURCE_DIR}/icon.svg")
 
   set(icon_res  ldpi mdpi hdpi xhdpi xxhdpi xxxhdpi)
   set(icon_size 36   48   72   96    144    192)
@@ -60,7 +60,7 @@ if(ANDROID)
   foreach(i RANGE ${icon_number_iter})
     list(GET icon_res ${i} res)
     list(GET icon_size ${i} size)
-    set(icon_dir "${CMAKE_BINARY_DIR}/res/drawable-${res}")
+    set(icon_dir "${CMAKE_CURRENT_BINARY_DIR}/android/res/drawable-${res}")
     file(MAKE_DIRECTORY "${icon_dir}")
     add_custom_target("${res}_out" DEPENDS "${icon_dir}/icon.png")
     add_custom_command(OUTPUT "${icon_dir}/icon.png"

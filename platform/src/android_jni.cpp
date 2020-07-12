@@ -3,7 +3,8 @@
 #include <QAndroidJniObject>
 
 // TODO: move to realsense provider (like in arcore)
-
+// TODO: Restore functional
+/*
 // Two functions from librelasense used to add/remove device
 extern "C" JNIEXPORT void JNICALL
 Java_com_intel_realsense_librealsense_DeviceWatcher_nAddUsbDevice(JNIEnv *env, jclass type, jstring deviceName_, jint fileDescriptor);
@@ -39,4 +40,4 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
     env->DeleteLocalRef(objectClass);
 
     return JNI_VERSION_1_6;
-}
+}*/

@@ -47,8 +47,6 @@
             <meta-data android:name="android.app.bundled_libs_resource_id" android:resource="@array/bundled_libs"/>
             <!-- Deploy Qt libs as part of package -->
             <meta-data android:name="android.app.bundle_local_qt_libs" android:value="-- %%BUNDLE_LOCAL_QT_LIBS%% --"/>
-            <meta-data android:name="android.app.bundled_in_lib_resource_id" android:resource="@array/bundled_in_lib"/>
-            <meta-data android:name="android.app.bundled_in_assets_resource_id" android:resource="@array/bundled_in_assets"/>
             <!-- Run with local libs -->
             <meta-data android:name="android.app.use_local_qt_libs" android:value="-- %%USE_LOCAL_QT_LIBS%% --"/>
             <meta-data android:name="android.app.libs_prefix" android:value="/data/local/tmp/qt/"/>
@@ -80,15 +78,15 @@
             <!-- extract android style -->
         </activity>
 
-        <meta-data android:name="com.google.ar.core" android:value="optional"/>
+        <!--<meta-data android:name="com.google.ar.core" android:value="optional"/>-->
         <!-- The minimal version code of ARCore APK (could be found in build/arcore/AndroidManifest.xml) -->
-        <meta-data android:name="com.google.ar.core.min_apk_version" android:value="190708000" />
+        <!--<meta-data android:name="com.google.ar.core.min_apk_version" android:value="190708000" />-->
         <!-- This activity is critical for installing ARCore when it is not already present. -->
-        <activity android:name="com.google.ar.core.InstallActivity"
+        <!--<activity android:name="com.google.ar.core.InstallActivity"
                   android:configChanges="keyboardHidden|orientation|screenSize"
                   android:excludeFromRecents="true"
                   android:exported="false"
                   android:launchMode="singleTop"
-                  android:theme="@android:style/Theme.Material.Light.Dialog.Alert" />
+                  android:theme="@android:style/Theme.Material.Light.Dialog.Alert" />-->
     </application>
 </manifest>

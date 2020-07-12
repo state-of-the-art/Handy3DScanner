@@ -31,7 +31,9 @@ foreach(plugin ${PLUGINS_LIST})
     endif()
 
     if(ANDROID)
-      set(_install_command ${CMAKE_COMMAND} -E copy_directory <BINARY_DIR>/android-build/libs <INSTALL_DIR>/lib)
+      set(_install_command ${CMAKE_COMMAND} -E copy
+        <BINARY_DIR>/${BUILD_H3DS_PLUGIN_PREFIX}${plugin}_${abi}.so
+        <INSTALL_DIR>/${BUILD_H3DS_PLUGIN_PREFIX}${plugin}_${abi}.so)
     else()
       set(_install_command ${CMAKE_COMMAND} -E copy
         <BINARY_DIR>/${BUILD_H3DS_PLUGIN_PREFIX}${plugin}.so

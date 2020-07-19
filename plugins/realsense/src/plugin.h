@@ -12,6 +12,7 @@ class RealSensePlugin : public QObject, public VideoSourceInterface
 
 public:
     ~RealSensePlugin() override {}
+    QString name() const override;
     QStringList requirements() const override;
     bool init() override;
     bool configure() override;

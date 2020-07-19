@@ -10,9 +10,6 @@ if(ANDROID)
   set(ANDROID_STL "c++_shared" CACHE STRING "Force to prevent issues" FORCE)
 endif()
 
-set(BUILD_H3DS_SRC_DIR "${CMAKE_SOURCE_DIR}/platform" CACHE STRING "Handy 3D Scanner source directory for plugins")
-set(BUILD_H3DS_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/platform/include" CACHE STRING "Handy 3D Scanner include directory for plugins")
-
 # Common parameters
 include(common.cmake)
 

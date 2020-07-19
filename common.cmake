@@ -28,4 +28,6 @@ else()
   set(BUILD_ABIS "${CMAKE_SYSTEM_PROCESSOR}")
 endif()
 
+set(BUILD_H3DS_SRC_DIR "${CMAKE_CURRENT_LIST_DIR}/platform" CACHE STRING "Handy 3D Scanner source directory for plugins" FORCE)
+set(BUILD_H3DS_INCLUDE_DIR "${CMAKE_CURRENT_LIST_DIR}/include" CACHE STRING "Handy 3D Scanner include directory for plugins" FORCE)
 set(BUILD_H3DS_PLUGIN_PREFIX "h3ds-plugin-")

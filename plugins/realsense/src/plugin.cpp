@@ -1,27 +1,34 @@
 #include "plugin.h"
 
-#include <QDebug>
+#include <QLoggingCategory>
+
+Q_LOGGING_CATEGORY(plugin, "RealSensePlugin")
+
+QString RealSensePlugin::name() const
+{
+    return plugin().categoryName();
+}
 
 QStringList RealSensePlugin::requirements() const
 {
-    qDebug() << "RealSensePlugin::requirements()";
+    qCDebug(plugin) << "requirements()";
     return QStringList();
 }
 
 bool RealSensePlugin::init()
 {
-    qDebug() << "RealSensePlugin::init()";
+    qCDebug(plugin) << "init()";
     return true;
 }
 
 bool RealSensePlugin::configure()
 {
-    qDebug() << "RealSensePlugin::configure()";
+    qCDebug(plugin) << "configure()";
     return true;
 }
 
 QStringList RealSensePlugin::getAvailableStreams() const
 {
-    qDebug() << "RealSensePlugin::getAvailableStreams()";
+    qCDebug(plugin) << "getAvailableStreams()";
     return QStringList();
 }

@@ -12,6 +12,11 @@ public:
     virtual ~PluginInterface() {};
 
     /**
+     * Plugin identify name
+     */
+    virtual QString name() const = 0;
+
+    /**
      * List of the plugins required by the plugin
      */
     virtual QStringList requirements() const = 0;

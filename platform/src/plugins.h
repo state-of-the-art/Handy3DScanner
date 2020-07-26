@@ -21,9 +21,10 @@ private:
     ~Plugins() override;
 
     void refreshPluginsList();
-    bool addPlugin(PluginInterface* plugin);
+    template<class T> bool addPlugin(T* plugin);
 
-    QMap<QString, PluginInterface*> m_plugins;
+    QMap<QLatin1String, QMap<QLatin1String, PluginInterface*>> m_plugins; // name : interface_id : plugin instance
+    QMap<QLatin1String, QList<PluginInterface*>> m_plugins_active; // interface_id : list of plugins
 };
 
 #endif // PLUGINS_H

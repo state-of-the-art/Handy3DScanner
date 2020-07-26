@@ -4,9 +4,9 @@
 
 Q_LOGGING_CATEGORY(plugin, "RealSensePlugin")
 
-QString RealSensePlugin::name() const
+QLatin1String RealSensePlugin::name() const
 {
-    return plugin().categoryName();
+    return QLatin1String(plugin().categoryName());
 }
 
 QStringList RealSensePlugin::requirements() const
@@ -31,4 +31,10 @@ QStringList RealSensePlugin::getAvailableStreams() const
 {
     qCDebug(plugin) << "getAvailableStreams()";
     return QStringList();
+}
+
+uint8_t *RealSensePlugin::getPCData() const
+{
+    qCDebug(plugin) << "getAvailableStreams()";
+    return nullptr;
 }

@@ -1,6 +1,7 @@
 #ifndef PLUGININTERFACE_H
 #define PLUGININTERFACE_H
 
+#include <QtPlugin>
 #include <QStringList>
 
 /**
@@ -12,9 +13,14 @@ public:
     virtual ~PluginInterface() {};
 
     /**
+     * Return plugin type
+     */
+    static QLatin1String type() { return QLatin1String("io.stateoftheart.handy3dscanner.Plugin"); }
+
+    /**
      * Plugin identify name
      */
-    virtual QString name() const = 0;
+    virtual QLatin1String name() const = 0;
 
     /**
      * List of the plugins required by the plugin

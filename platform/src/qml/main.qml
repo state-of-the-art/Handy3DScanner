@@ -21,10 +21,10 @@ Window {
             anchors.right: parent.right
             anchors.left: parent.left
 
-            TabButton {
+            /*TabButton {
                 text: "\uE800 "+qsTr("Capture")
                 font.family: "icons"
-            }
+            }*/
             TabButton {
                 text: "\uE801 "+qsTr("Edit")
                 font.family: "icons"
@@ -42,9 +42,9 @@ Window {
             anchors.left: parent.left
             currentIndex: bar.currentIndex
 
-            Capture {
+            /*Capture {
                 id: capture
-            }
+            }*/
             Edit {
                 id: edit
             }

@@ -1,7 +1,8 @@
 import QtQuick 2.12
 
 Item {
-    Text {
+    // TODO: Reenable functionality
+    /*Text {
         anchors.fill: parent
         visible: !(cameraPos.isSupportRotation || cameraPos.isSupportPosition)
         text: "N/A"
@@ -35,5 +36,5 @@ Item {
     MouseArea {
         anchors.fill: parent
         onPressed: miniaxis.resetPosition()
-    }
+    }*/
 }

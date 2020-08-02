@@ -52,13 +52,15 @@ Item {
             anchors.margins: 3
             width: connection_text.width + 6
             height: connection_text.height + 6
-            color: camera.isStreaming ? "#88008800" : "#88880000"
+            // TODO: Reenable functionality
+            //color: camera.isStreaming ? "#88008800" : "#88880000"
             radius: 3
             Text {
                 id: connection_text
                 anchors.centerIn: parent
                 color: "#fff"
-                text: camera.connectionType || "No camera connected"
+                // TODO: Reenable functionality
+                //text: camera.connectionType || "No camera connected"
             }
         }
 
@@ -72,13 +74,15 @@ Item {
                 anchors.margins: 3
                 width: stream_fps_text.width + 6
                 height: stream_fps_text.height + 6
-                color: camera.isStreaming ? "#88008800" : "#88880000"
+                // TODO: Reenable functionality
+                //color: camera.isStreaming ? "#88008800" : "#88880000"
                 radius: 3
                 Text {
                     id: stream_fps_text
                     anchors.centerIn: parent
                     color: "#fff"
-                    text: (camera.isStreaming ? camera.streamFPS.toFixed(1) : "0.0") + " fps"
+                    // TODO: Reenable functionality
+                    //text: (camera.isStreaming ? camera.streamFPS.toFixed(1) : "0.0") + " fps"
                 }
             }
 
@@ -89,13 +93,15 @@ Item {
                 anchors.margins: 3
                 width: stream_fwt_text.width + 6
                 height: stream_fwt_text.height + 6
-                color: camera.isStreaming ? "#88008800" : "#88880000"
+                // TODO: Reenable functionality
+                //color: camera.isStreaming ? "#88008800" : "#88880000"
                 radius: 3
                 Text {
                     id: stream_fwt_text
                     anchors.centerIn: parent
                     color: "#fff"
-                    text: (camera.isStreaming ? camera.streamFWT.toFixed(1) : "0.0") + " fwt"
+                    // TODO: Reenable functionality
+                    //text: (camera.isStreaming ? camera.streamFWT.toFixed(1) : "0.0") + " fwt"
                 }
             }
 
@@ -106,13 +112,15 @@ Item {
                 anchors.margins: 3
                 width: stream_fpt_text.width + 6
                 height: stream_fpt_text.height + 6
-                color: camera.isStreaming ? "#88008800" : "#88880000"
+                // TODO: Reenable functionality
+                //color: camera.isStreaming ? "#88008800" : "#88880000"
                 radius: 3
                 Text {
                     id: stream_fpt_text
                     anchors.centerIn: parent
                     color: "#fff"
-                    text: (camera.isStreaming ? camera.streamFPT.toFixed(1) : "0.0") + " fpt"
+                    // TODO: Reenable functionality
+                    //text: (camera.isStreaming ? camera.streamFPT.toFixed(1) : "0.0") + " fpt"
                 }
             }
         }
@@ -135,20 +143,23 @@ Item {
         width: 100
         height: 100
         opacity: 0.5
-        color: camera.isStreaming ? "#f00" : "#aaa"
+        // TODO: Reenable functionality
+        //color: camera.isStreaming ? "#f00" : "#aaa"
         radius: 50
 
-        MouseArea {
+        // TODO: Reenable functionality
+        /*MouseArea {
             anchors.fill: parent
             enabled: camera.isStreaming
             onPressed: {
                 camera.makeShot()
                 shot_flash.start()
             }
-        }
+        }*/
     }
 
-    Connections {
+    // TODO: Reenable functionality
+    /*Connections {
         id: cameraConnections
         target: camera
         onNewDepthImage: depthView.setImage(image)
@@ -157,5 +168,5 @@ Item {
                 camera.start()
         }
         //onErrorOccurred: errorText.text = error
-    }
+    }*/
 }

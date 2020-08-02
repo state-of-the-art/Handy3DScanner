@@ -34,7 +34,8 @@ Item {
                 ListView {
                     id: pointCloudsList
                     anchors.fill: parent
-                    model: camera.pointclouds
+                    // TODO: Reenable functionality
+                    //model: camera.pointclouds
                     clip: true
 
                     delegate: Rectangle {

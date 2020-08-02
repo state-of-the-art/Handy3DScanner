@@ -21,6 +21,12 @@ bool RealSensePlugin::init()
     return true;
 }
 
+bool RealSensePlugin::deinit()
+{
+    qCDebug(plugin) << "deinit()";
+    return true;
+}
+
 bool RealSensePlugin::configure()
 {
     qCDebug(plugin) << "configure()";

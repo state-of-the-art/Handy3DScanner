@@ -4,6 +4,8 @@
 #include <QtPlugin>
 #include <QStringList>
 
+#define PluginInterface_iid "io.stateoftheart.handy3dscanner.PluginInterface"
+
 /**
  * Basic interface for plugins
  */
@@ -15,7 +17,7 @@ public:
     /**
      * Return plugin type
      */
-    static QLatin1String type() { return QLatin1String("io.stateoftheart.handy3dscanner.Plugin"); }
+    static QLatin1String type() { return QLatin1String(PluginInterface_iid); }
 
     /**
      * Plugin identify name
@@ -28,14 +30,22 @@ public:
     virtual QStringList requirements() const = 0;
 
     /**
-     * Executed during plugins registration
+     * Executed during plugin activation
+     * Warning: will be executed for each interface
      */
     virtual bool init() = 0;
+
+    /**
+     * Executed during plugin deactivation
+     */
+    virtual bool deinit() = 0;
 
     /**
      * Executed when all the available plugins are initialized
      */
     virtual bool configure() = 0;
 };
+
+Q_DECLARE_INTERFACE(PluginInterface, PluginInterface_iid)
 
 #endif // PLUGININTERFACE_H

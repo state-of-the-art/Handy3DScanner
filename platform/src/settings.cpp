@@ -1,4 +1,5 @@
 #include "settings.h"
+#include "plugins.h"
 
 #include <QDebug>
 
@@ -57,7 +58,7 @@ QJsonValue Settings::opt(QString key_path)
 
 void Settings::setOpt(QString key_path, QJsonObject option)
 {
-    qDebug() << "Set option value for" << key_path;
+    qDebug() << "Set option for" << key_path;
     setDefinition(key_path, option, true);
 }
 
@@ -223,6 +224,28 @@ void Settings::loadDefinitions()
     for( const QString& key :  definitions.keys() ) {
         setDefinition(key, definitions.value(key).toObject());
     }
+
+    // Loading plugins list and enable-disable feature
+    QJsonObject plugin_active;
+    plugin_active["type"] = "boolean";
+    plugin_active["default"] = false;
+    QString key_path;
+    for( const QLatin1String& name : Plugins::I()->listPlugins() ) {
+        key_path = "Plugins." + name + ".enabled";
+        plugin_active["description"] = QLatin1String("Enable plugin '%1'").arg(name);
+        setDefinition(key_path, plugin_active);
+        Plugins::I()->settingActivePlugin(key_path, name);
+        // Notify plugin to load
+        for( const QLatin1String& interface : Plugins::I()->listInterfaces(name) ) {
+            plugin_active["description"] = QLatin1String("Activate plugin interface '%1'").arg(interface);
+            key_path = "Plugins." + name + '.';
+            key_path += QString(interface).split(QLatin1Char('.')).last() + ".active";
+            setDefinition(key_path, plugin_active);
+            Plugins::I()->settingActiveInterface(key_path, name, interface);
+        }
+    }
+    // Connect plugins to listen on settings changed
+    connect(this, &Settings::valueChanged, Plugins::I(), &Plugins::settingChanged);
 }
 
 void Settings::loadSettings()
@@ -285,8 +308,10 @@ void Settings::loadType(QJsonObject option)
 void Settings::updateVal(QString key_path, QJsonObject option)
 {
     QJsonValue val = option.contains("value") ? option.value("value") : option.value("default");
-    if( QQmlPropertyMap::value(key_path) != val.toVariant() )
+    if( QQmlPropertyMap::value(key_path) != val.toVariant() ) {
         insert(key_path, val);
+        emit valueChanged(key_path, val.toVariant());
+    }
 }
 
 void Settings::saveSettings()

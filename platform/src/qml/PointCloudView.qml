@@ -19,9 +19,10 @@ Scene3D {
 
     onPrimitiveViewTypeChanged: {
         // Going trough the pointclouds and switching index attribute
-        for( var i in camera.pointclouds ) {
+        // TODO: Reenable functionality
+        /*for( var i in camera.pointclouds ) {
             camera.pointclouds[i].switchIndexAttribute(primitiveViewType !== GeometryRenderer.Points)
-        }
+        }*/
     }
 
     function getRoot() {

@@ -90,7 +90,8 @@ Scene3D {
             components: [
                 Transform {
                     id: objRot
-                    rotation: cameraPos.quaternion
+                    // TODO: Reenable functionality
+                    //rotation: cameraPos.quaternion
                 }
             ]
 

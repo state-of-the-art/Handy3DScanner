@@ -1,4 +1,5 @@
 #include "plugins.h"
+#include "settings.h"
 
 #include <QLoggingCategory>
 #include <QCoreApplication>
@@ -27,6 +28,100 @@ Plugins::~Plugins()
     qCDebug(plugins, "Destroy object");
 }
 
+QList<QLatin1String> Plugins::listPlugins()
+{
+    return m_plugins.keys();
+}
+
+QList<QLatin1String> Plugins::listInterfaces(const QLatin1String &name)
+{
+    if( !m_plugins.contains(name) ) {
+        qCWarning(plugins) << "Not found plugin" << name;
+        return QList<QLatin1String>();
+    }
+    return m_plugins[name].keys();
+}
+
+void Plugins::settingActivePlugin(const QString &key, const QLatin1String &name)
+{
+    m_setting_plugin_active.insert(key, name);
+}
+
+void Plugins::settingActiveInterface(const QString &key, const QLatin1String &name, const QLatin1String &interface)
+{
+    m_setting_plugin_interface_active.insert(key, QPair<QLatin1String, QLatin1String>(name, interface));
+}
+
+bool Plugins::activateInterface(const QLatin1String &name, const QLatin1String &interface)
+{
+    // Don't activate interface if the plugin is not enabled
+    if( !Settings::I()->val(m_setting_plugin_active.key(name)).toBool() )
+        return false;
+    PluginInterface* plugin = m_plugins[name][interface];
+    if( !plugin ) {
+        qCWarning(plugins) << "Unable to locate plugin interface to activate" << name << interface << plugin;
+        return false;
+    }
+    plugin->init();
+    if( !m_plugins_active[interface].contains(plugin) ) {
+        m_plugins_active[interface].append(plugin);
+        return true;
+    }
+    return false;
+}
+
+bool Plugins::deactivateInterface(const QLatin1String &name, const QLatin1String &interface)
+{
+    PluginInterface* plugin = m_plugins[name][interface];
+    if( !plugin ) {
+        qCWarning(plugins) << "Unable to locate plugin interface to deactivate" << name << interface << plugin;
+        return false;
+    }
+    if( m_plugins_active[interface].contains(plugin) ) {
+        m_plugins_active[interface].removeOne(plugin);
+        // Deinit plugin if no interface active anymore
+        auto it = m_plugins_active.begin();
+        while( it != m_plugins_active.end() ) {
+            if( it.value().contains(plugin) )
+                return true;
+            ++it;
+        }
+        plugin->deinit();
+        return true;
+    }
+    return false;
+}
+
+void Plugins::settingChanged(const QString &key, const QVariant &value)
+{
+    if( m_setting_plugin_active.contains(key) ) {
+        QLatin1String name = m_setting_plugin_active[key];
+        qCDebug(plugins) << "Set plugin" << name << "active" << value.toBool();
+        if( value.toBool() ) {
+            auto it = m_setting_plugin_interface_active.begin();
+            while( it != m_setting_plugin_interface_active.end() ) {
+                if( it.value().first == name && Settings::I()->val(it.key()).toBool() )
+                    activateInterface(name, it.value().second);
+                ++it;
+            }
+        } else {
+            auto it = m_setting_plugin_interface_active.begin();
+            while( it != m_setting_plugin_interface_active.end() ) {
+                if( it.value().first == name && Settings::I()->val(it.key()).toBool() )
+                    deactivateInterface(name, it.value().second);
+                ++it;
+            }
+        }
+    } else if( m_setting_plugin_interface_active.contains(key) ) {
+        QPair info = m_setting_plugin_interface_active[key];
+        qCDebug(plugins) << "Set plugin" << info.first << "interface" << info.second << "active" << value.toBool();
+        if( value.toBool() )
+            activateInterface(info.first, info.second);
+        else
+            deactivateInterface(info.first, info.second);
+    }
+}
+
 void Plugins::refreshPluginsList()
 {
     QStringList plugins_dirs = { QCoreApplication::applicationDirPath() };
@@ -45,9 +140,11 @@ void Plugins::refreshPluginsList()
                 continue;
             }
 
+            PluginInterface *plugin_cast = nullptr; // We need to store the same reference to all the interfaces of the same plugin
+
             qCDebug(plugins) << "  loading plugin:" << lib_name;
-            bool loaded = addPlugin<VideoSourceInterface>(qobject_cast<VideoSourceInterface *>(plugin));
-            loaded = addPlugin<PointCloudSourceInterface>(qobject_cast<PointCloudSourceInterface *>(plugin)) || loaded;
+            bool loaded = addPlugin<VideoSourceInterface>(qobject_cast<VideoSourceInterface *>(plugin), &plugin_cast);
+            loaded = addPlugin<PointCloudSourceInterface>(qobject_cast<PointCloudSourceInterface *>(plugin), &plugin_cast) || loaded;
 
             if( !loaded ) {
                 plugin_loader.unload();
@@ -55,22 +152,38 @@ void Plugins::refreshPluginsList()
             }
         }
     }
+
+
+    auto it = m_plugins.begin();
+    while( it != m_plugins.end() ) {
+        auto it2 = it.value().begin();
+        while( it2 != it.value().end() ) {
+            qCDebug(plugins) << "Loaded plugin" << it.key() << "for interface" << it2.key() << ":" << it2.value();
+            ++it2;
+        }
+        ++it;
+    }
 }
 
 template<class T>
-bool Plugins::addPlugin(T *plugin)
+bool Plugins::addPlugin(T *obj, PluginInterface **plugin)
 {
     static_assert(std::is_base_of<PluginInterface, T>::value, "Unable to add non-PluginInterface object as plugin");
 
-    if( !plugin )
+    if( !obj )
         return false;
 
-    if( m_plugins.contains(plugin->name()) && m_plugins[plugin->name()].contains(plugin->type()) ) {
-        qCWarning(plugins, "  plugin already loaded, skipping: %s::%s", plugin->name().data(), plugin->type().data());
+    if( *plugin == nullptr ) {
+        qCDebug(plugins) << "Set plugin" << *plugin << "to" << obj;
+        *plugin = obj;
+    }
+
+    if( m_plugins.contains(obj->name()) && m_plugins[obj->name()].contains(obj->type()) ) {
+        qCWarning(plugins, "  plugin already loaded, skipping: %s::%s", obj->name().data(), obj->type().data());
         return false;
     }
 
-    m_plugins[plugin->name()][plugin->type()] = plugin;
-    qCDebug(plugins, "  loaded plugin: %s::%s", plugin->name().data(), plugin->type().data());
+    m_plugins[obj->name()][obj->type()] = *plugin;
+    qCDebug(plugins, "  loaded plugin: %s::%s", obj->name().data(), obj->type().data());
     return true;
 }

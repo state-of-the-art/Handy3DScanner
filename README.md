@@ -1,5 +1,7 @@
 # Handy 3D Scanner
 
+[![Join the chat at https://gitter.im/state-of-the-art/Handy-3D-Scanner](https://badges.gitter.im/state-of-the-art/Handy-3D-Scanner.svg)](https://gitter.im/state-of-the-art/Handy-3D-Scanner?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 General purpose 3d scaner based on Intel Realsense D400 cameras.
 
 Application to help build a cheap 3d scanner based on Intel RealSense D415/D435 cameras and your android smartphone, tablet or laptop.

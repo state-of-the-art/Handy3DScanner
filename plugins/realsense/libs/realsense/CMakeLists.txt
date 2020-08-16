@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.13)
 
 project(realsense)
 
-include(../../common.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/../../../../common.cmake)
 
 set(src_dir ${LIB_BASE_BINARY_DIR}/src)
 set(output_dir ${LIB_RESULT_DIR})

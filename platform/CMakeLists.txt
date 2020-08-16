@@ -1,8 +1,12 @@
 cmake_minimum_required(VERSION 3.13)
 
-project(handy3dscanner LANGUAGES CXX)
+project(handy3dscanner LANGUAGES CXX VERSION 0.6.0)
 
 include(../common.cmake)
+
+if(ANDROID)
+  set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/android")
+endif()
 
 find_package(Qt5 COMPONENTS Core Quick Sensors 3DCore 3DRender 3DInput 3DQuick 3DQuickExtras REQUIRED)
 
@@ -13,11 +17,10 @@ file(GLOB_RECURSE Execution_H RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "src/*.h" "
 if(ANDROID)
   find_package(Qt5 COMPONENTS AndroidExtras REQUIRED)
   add_library(${PROJECT_NAME} SHARED ${Execution_CPP} ${Execution_H} "${CMAKE_CURRENT_SOURCE_DIR}/src/app.qrc")
-  set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_BINARY_DIR}/android" CACHE INTERNAL "")
 else()
   # Excluding android-only sources
   list(REMOVE_ITEM Execution_H src/androidwrapper.h src/androidwrapperexception.h)
-  list(REMOVE_ITEM Execution_CPP src/android_jni.cpp src/androidwrapper.cpp)
+  list(REMOVE_ITEM Execution_CPP src/androidwrapper.cpp)
   add_executable(${PROJECT_NAME} ${Execution_CPP} ${Execution_H} src/app.qrc)
 endif()
 

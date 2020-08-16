@@ -16,6 +16,11 @@ add_definitions(-DQT_DISABLE_DEPRECATED_BEFORE=0x060000)
 # Set universal BUILD_ABI & BUILD_ABIS
 if(ANDROID)
   set(BUILD_ABI ${ANDROID_ABI})
+
+  # Build arm32 & arm64 by default
+  set(ANDROID_BUILD_ABI_armeabi-v7a ON CACHE BOOL "Enable the build for Android armeabi-v7a")
+  set(ANDROID_BUILD_ABI_arm64-v8a ON CACHE BOOL "Enable the build for Android arm64-v8a")
+
   foreach(abi armeabi-v7a arm64-v8a x86 x86_64)
     if(abi STREQUAL ${BUILD_ABI})
       list(APPEND BUILD_ABIS ${abi})
@@ -30,4 +35,4 @@ endif()
 
 set(BUILD_H3DS_SRC_DIR "${CMAKE_CURRENT_LIST_DIR}/platform" CACHE STRING "Handy 3D Scanner source directory for plugins" FORCE)
 set(BUILD_H3DS_INCLUDE_DIR "${CMAKE_CURRENT_LIST_DIR}/include" CACHE STRING "Handy 3D Scanner include directory for plugins" FORCE)
-set(BUILD_H3DS_PLUGIN_PREFIX "h3ds-plugin-")
+set(BUILD_H3DS_PLUGIN_PREFIX "h3ds-plugin-" CACHE STRING "Handy 3D Scanner plugin prefix" FORCE)

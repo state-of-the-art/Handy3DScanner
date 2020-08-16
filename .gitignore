@@ -78,3 +78,6 @@ CMakeLists.txt.user*
 
 # Keystore
 /android.keystore
+
+# plugin standalone builds
+/plugins/build-*

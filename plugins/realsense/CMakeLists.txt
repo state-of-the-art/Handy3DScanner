@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.13)
 
+# Name and version
 project(realsense LANGUAGES CXX VERSION 0.1.0)
 
 # Common plugin parameters
-include(../common.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/../common.cmake)
 
-find_package(Qt5 COMPONENTS Core REQUIRED)
-
-target_link_libraries(${PROJECT_NAME} PRIVATE Qt5::Core realsense2)
+# Add lib to include
+target_link_libraries(${PROJECT_NAME} PRIVATE realsense2)

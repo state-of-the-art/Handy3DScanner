@@ -125,7 +125,7 @@ void Plugins::settingChanged(const QString &key, const QVariant &value)
 void Plugins::refreshPluginsList()
 {
     QStringList plugins_dirs = { QCoreApplication::applicationDirPath() };
-    QStringList filters = { "h3ds-plugin-*" };
+    QStringList filters = { "libh3ds-plugin-*" };
 
     for( const QString &path : plugins_dirs ) {
         qCDebug(plugins) << "Listing plugins from directory:" << QCoreApplication::applicationDirPath();

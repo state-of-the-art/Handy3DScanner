@@ -1,0 +1,25 @@
+<?xml version='1.0' encoding='utf-8'?>
+<manifest package="io.stateoftheart.handy3dscanner.plugins" xmlns:android="http://schemas.android.com/apk/res/android"
+          android:versionName="{{ PROJECT_VERSION }}"
+          android:versionCode="{{ PROJECT_VERSION_CODE }}">
+          <!--    versionCode="xxxxxx"
+                               ||||**  - patch version %02d
+                               ||**    - minor version %02d
+                               **      - major version %02d -->
+
+    <uses-sdk android:minSdkVersion="21" android:targetSdkVersion="27"/>
+
+    <uses-feature android:name="android.hardware.usb.host" />
+
+    <application>
+        <activity android:name="io.stateoftheart.handy3dscanner.plugins.RealSensePlugin">
+            <intent-filter>
+                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"/>
+                <action android:name="android.hardware.usb.action.USB_DEVICE_DETACHED"/>
+            </intent-filter>
+
+            <meta-data android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" android:resource="@xml/device_filter"/>
+            <meta-data android:name="android.hardware.usb.action.USB_DEVICE_DETACHED" android:resource="@xml/device_filter"/>
+        </activity>
+    </application>
+</manifest>

@@ -15,35 +15,50 @@ public:
     virtual ~PluginInterface() {};
 
     /**
-     * Return plugin type
+     * @brief Return plugin type
      */
     static QLatin1String type() { return QLatin1String(PluginInterface_iid); }
 
     /**
-     * Plugin identify name
+     * @brief Plugin identify name
      */
     virtual QLatin1String name() const = 0;
 
     /**
-     * List of the plugins required by the plugin
+     * @brief List of the plugins required by the plugin
      */
     virtual QStringList requirements() const = 0;
 
     /**
-     * Executed during plugin activation
+     * @brief Executed during plugin activation
      * Warning: will be executed for each interface
      */
     virtual bool init() = 0;
 
     /**
-     * Executed during plugin deactivation
+     * @brief Executed during plugin deactivation
      */
     virtual bool deinit() = 0;
 
     /**
-     * Executed when all the available plugins are initialized
+     * @brief Executed when all the available plugins are initialized
      */
     virtual bool configure() = 0;
+
+    /**
+     * @brief Shows the plugin was initialized or not
+     */
+    bool isInitialized() { return m_initialized; }
+
+protected:
+    /**
+     * @brief Used by plugin to set the init state
+     * @param value
+     */
+    void setInitialized(bool value) { m_initialized = value; }
+
+private:
+    bool m_initialized;
 };
 
 Q_DECLARE_INTERFACE(PluginInterface, PluginInterface_iid)

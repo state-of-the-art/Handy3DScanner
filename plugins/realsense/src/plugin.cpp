@@ -42,24 +42,34 @@ bool RealSensePlugin::init()
         return false;
     }
 
-    // Init librealsense
+    // Attach librs native functions to the RealSensePlugin class
     JNINativeMethod methods[] {{"notifyDeviceAttached", "(Ljava/lang/String;I)V", reinterpret_cast<void *>(Java_com_intel_realsense_librealsense_DeviceWatcher_nAddUsbDevice)},
                                {"notifyDeviceDetached", "(I)V", reinterpret_cast<void *>(Java_com_intel_realsense_librealsense_DeviceWatcher_nRemoveUsbDevice)}};
 
-    jclass objectClass = env->FindClass("io/stateoftheart/handy3dscanner/plugins/RealSensePlugin");
-    if( !objectClass ) {
+    jclass activityClass = env->FindClass("io/stateoftheart/handy3dscanner/plugins/RealSensePlugin");
+    if( !activityClass ) {
         qCWarning(plugin) << "Couldn't find class:" << "io/stateoftheart/handy3dscanner/plugins/RealSensePlugin";
         return false;
     }
 
-    if( env->RegisterNatives(objectClass, methods, sizeof(methods) / sizeof(methods[0])) < 0 ) {
+    if( env->RegisterNatives(activityClass, methods, sizeof(methods) / sizeof(methods[0])) < 0 ) {
         qCWarning(plugin) << "Error registering JNI methods";
         return false;
-    } else {
-        qCDebug(plugin) << "JNI Native methods registered";
     }
 
-    env->DeleteLocalRef(objectClass);
+    env->DeleteLocalRef(activityClass);
+
+    qCDebug(plugin) << "JNI Native methods registered";
+
+    // Create plugin activity to listen the camera events
+    QAndroidIntent serviceIntent(QtAndroid::androidActivity().object(),
+                                        "io/stateoftheart/handy3dscanner/plugins/RealSensePlugin");
+    QAndroidJniObject result = QtAndroid::androidActivity().callObjectMethod(
+                "startService",
+                "(Landroid/content/Intent;)Landroid/content/ComponentName;",
+                serviceIntent.handle().object());
+
+    qCDebug(plugin) << "Camera connect listening service activated" << result.toString();
 #endif // ANDROID
 
     qCDebug(plugin) << "init() done";
@@ -82,6 +92,17 @@ bool RealSensePlugin::deinit()
         return false;
     }
 
+    // Stop the plugin service
+    QAndroidIntent serviceIntent(QtAndroid::androidActivity().object(),
+                                        "io/stateoftheart/handy3dscanner/plugins/RealSensePlugin");
+    QAndroidJniObject result = QtAndroid::androidActivity().callObjectMethod(
+                "stopService",
+                "(Landroid/content/Intent;)Z",
+                serviceIntent.handle().object());
+
+    qCDebug(plugin) << "Camera connect listening service deactivated";
+
+    // Unbining the native librs methods
     jclass objectClass = env->FindClass("io/stateoftheart/handy3dscanner/plugins/RealSensePlugin");
     if( !objectClass ) {
         qCWarning(plugin) << "Couldn't find class:" << "io/stateoftheart/handy3dscanner/plugins/RealSensePlugin";
@@ -91,9 +112,9 @@ bool RealSensePlugin::deinit()
     if( env->UnregisterNatives(objectClass) ) {
         qCWarning(plugin) << "Error unregistering JNI methods";
         return false;
-    } else {
-        qCDebug(plugin) << "JNI Native methods unregistered";
     }
+
+    qCDebug(plugin) << "JNI Native methods unregistered";
 #endif // ANDROID
 
     qCDebug(plugin) << "deinit() done";

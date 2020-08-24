@@ -58,7 +58,7 @@ protected:
     void setInitialized(bool value) { m_initialized = value; }
 
 private:
-    bool m_initialized;
+    bool m_initialized = false;
 };
 
 Q_DECLARE_INTERFACE(PluginInterface, PluginInterface_iid)

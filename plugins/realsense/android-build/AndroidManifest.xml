@@ -12,7 +12,11 @@
     <uses-feature android:name="android.hardware.usb.host" />
 
     <application>
-        <activity android:name="io.stateoftheart.handy3dscanner.plugins.RealSensePlugin">
+        <service android:name=".RealSensePlugin">
+            <!-- Background running -->
+            <meta-data android:name="android.app.background_running" android:value="true"/>
+            <!-- Background running -->
+
             <intent-filter>
                 <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"/>
                 <action android:name="android.hardware.usb.action.USB_DEVICE_DETACHED"/>
@@ -20,6 +24,6 @@
 
             <meta-data android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" android:resource="@xml/device_filter"/>
             <meta-data android:name="android.hardware.usb.action.USB_DEVICE_DETACHED" android:resource="@xml/device_filter"/>
-        </activity>
+        </service>
     </application>
 </manifest>

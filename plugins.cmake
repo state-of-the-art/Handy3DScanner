@@ -46,7 +46,7 @@ foreach(plugin ${PLUGINS_LIST})
     PREFIX plugins/_build
     SOURCE_DIR ${_plugins_dir}/${plugin}
     INSTALL_DIR ${PLUGIN_RESULT_DIR}
-    UPDATE_COMMAND ""
+    UPDATE_COMMAND "${CMAKE_COMMAND}"
     PATCH_COMMAND ""
     BUILD_ALWAYS YES
     DOWNLOAD_COMMAND ""

@@ -37,6 +37,7 @@ android.bundle.enableUncompressedNativeLibs=false
 androidBuildToolsVersion=
 androidCompileSdkVersion=29
 buildDir=build
+qt5AndroidDir=${QT_ANDROID}/src/android/java
 ")
   file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/android-build/local.properties" "
 ndk.dir=${ANDROID_NDK}

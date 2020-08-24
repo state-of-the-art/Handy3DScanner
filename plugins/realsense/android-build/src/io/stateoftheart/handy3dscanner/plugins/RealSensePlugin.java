@@ -3,7 +3,6 @@ package io.stateoftheart.handy3dscanner.plugins;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import android.app.Activity;
 import android.hardware.usb.UsbManager;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
@@ -16,8 +15,9 @@ import android.content.IntentFilter;
 import android.os.Handler;
 import android.os.Bundle;
 import android.util.Log;
+import org.qtproject.qt5.android.bindings.QtService;
 
-public class RealSensePlugin extends Activity
+public class RealSensePlugin extends QtService
 {
     private String TAG = "Handy3DScanner::RealSensePlugin";
 
@@ -33,13 +33,9 @@ public class RealSensePlugin extends Activity
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        Log.d(TAG, "onRequestPermissionsResult");
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    public void onCreate() {
+        super.onCreate();
+        Log.d(TAG, "onCreate");
 
         manager = (UsbManager) getSystemService(Context.USB_SERVICE);
 
@@ -62,11 +58,16 @@ public class RealSensePlugin extends Activity
     @Override
     public void onDestroy() {
         super.onDestroy();
+        Log.d(TAG, "onDestroy");
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        int ret = super.onStartCommand(intent, flags, startId);
+
+        Log.d(TAG, "onStartCommand");
+
+        return ret;
     }
 
     private static native void notifyDeviceAttached(String name, int fd);

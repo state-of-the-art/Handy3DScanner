@@ -21,7 +21,7 @@
 
     <application android:hardwareAccelerated="true" android:name="org.qtproject.qt5.android.bindings.QtApplication" android:label="Handy 3D Scanner" android:extractNativeLibs="true">
         <activity android:configChanges="orientation|uiMode|screenLayout|screenSize|smallestScreenSize|layoutDirection|locale|fontScale|keyboard|keyboardHidden|navigation|mcc|mnc|density"
-                  android:name="io.stateoftheart.handy3dscanner.Handy3DScannerActivity"
+                  android:name=".Handy3DScannerActivity"
                   android:label="Handy 3D Scanner"
                   android:icon="@drawable/icon"
                   android:screenOrientation="landscape"

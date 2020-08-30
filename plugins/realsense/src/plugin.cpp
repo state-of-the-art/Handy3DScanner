@@ -103,7 +103,8 @@ bool RealSensePlugin::deinit()
         qCDebug(plugin) << "Camera connect listening service deactivated";
 
     // Unbining the native librs methods
-    jclass objectClass = env->FindClass("io/stateoftheart/handy3dscanner/plugins/RealSensePlugin");
+    // TODO: onDestroy is calling after "deinit() done" so we have to leave the bindings there
+    /*jclass objectClass = env->FindClass("io/stateoftheart/handy3dscanner/plugins/RealSensePlugin");
     if( !objectClass ) {
         qCWarning(plugin) << "Couldn't find class:" << "io/stateoftheart/handy3dscanner/plugins/RealSensePlugin";
         return false;
@@ -112,7 +113,7 @@ bool RealSensePlugin::deinit()
     if( env->UnregisterNatives(objectClass) ) {
         qCWarning(plugin) << "Error unregistering JNI methods";
         return false;
-    }
+    }*/
 
     qCDebug(plugin) << "JNI Native methods unregistered";
 #endif // ANDROID

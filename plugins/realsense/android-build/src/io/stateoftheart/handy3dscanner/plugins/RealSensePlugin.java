@@ -59,7 +59,16 @@ public class RealSensePlugin extends Service
     @Override
     public void onDestroy() {
         Log.d(TAG, "onDestroy");
+
+        // Do not receive new devices anymore
         unregisterReceiver(usbManagerBroadcastReceiver);
+
+        // Detach the connected devices
+        for( HashMap.Entry<Integer, Integer> pair: connectedDevices.entrySet() ) {
+            notifyDeviceDetached(pair.getValue());
+            Log.d(TAG, "device: " + pair.getKey() + " disconnected. fd: " + pair.getValue());
+        }
+
         super.onDestroy();
     }
 

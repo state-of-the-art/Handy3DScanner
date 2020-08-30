@@ -18,6 +18,9 @@ public:
     inline static Settings* I() { if( s_pInstance == nullptr ) s_pInstance = new Settings(); return s_pInstance; }
     inline static void destroyI() { delete s_pInstance; }
 
+    void loadSettings();
+    void loadTypes();
+
     Q_INVOKABLE QJsonValue opt(QString key_path);
     Q_INVOKABLE void setOpt(QString key_path, QJsonObject option);
 
@@ -34,8 +37,6 @@ private:
 
     void loadDefinitions();
     void setDefinition(QString key_path, QJsonObject option, bool custom = false);
-    void loadSettings();
-    void loadTypes();
     void loadType(QJsonObject option);
     void updateVal(QString key_path, QJsonObject value);
     void saveSettings();

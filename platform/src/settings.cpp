@@ -1,7 +1,9 @@
 #include "settings.h"
 #include "plugins.h"
 
-#include <QDebug>
+#include <QLoggingCategory>
+
+Q_LOGGING_CATEGORY(settings, "Settings")
 
 #include <QStandardPaths>
 #include <QFile>
@@ -18,16 +20,16 @@ Settings::Settings()
     , m_settings(new QJsonObject())
     , m_jsengine(new QJSEngine())
 {
+    qCDebug(settings) << "Create object";
     QDir(m_path).mkpath(".");
     m_path += "/settings.json";
 
     loadDefinitions();
-    loadSettings();
-    loadTypes();
 }
 
 Settings::~Settings()
 {
+    qCDebug(settings) << "Destroy object";
     saveSettings();
     delete m_jsengine;
     delete m_settings;
@@ -58,13 +60,13 @@ QJsonValue Settings::opt(QString key_path)
 
 void Settings::setOpt(QString key_path, QJsonObject option)
 {
-    qDebug() << "Set option for" << key_path;
+    qCDebug(settings) << "Set option for" << key_path;
     setDefinition(key_path, option, true);
 }
 
 void Settings::setDefinition(QString key_path, QJsonObject option, bool custom)
 {
-    qDebug() << "Set definition for" << key_path << option;
+    qCDebug(settings) << "Set definition for" << key_path << option;
     QStringList path = key_path.split('.');
     QList<QJsonValue> objects;
     QJsonObject curr_level = *m_settings;
@@ -84,7 +86,7 @@ void Settings::setDefinition(QString key_path, QJsonObject option, bool custom)
 
         if( !i.hasNext() ) {
             if( !curr_level.contains("type") )
-                qDebug() << "Replacing existing definition" << key_path << curr_level;
+                qCDebug(settings) << "Replacing existing definition" << key_path << curr_level;
             if( curr_level.contains("value") && validate(option, curr_level.value("value")) )
                 option["value"] = curr_level.value("value");
             curr_level = option;
@@ -117,13 +119,13 @@ QJsonValue Settings::val(QString key_path)
         return def.contains("value") ? def.value("value") : def.value("default");
     }
 
-    qWarning() << "Option is not found for key" << key_path;
+    qCWarning(settings) << "Option is not found for key" << key_path;
     return QJsonValue();
 }
 
 void Settings::setVal(QString key_path, QJsonValue value)
 {
-    qDebug() << "Set option value for" << key_path << value;
+    qCDebug(settings) << "Set option value for" << key_path << value;
     QStringList path = key_path.split('.');
     QList<QJsonValue> objects;
     QJsonObject curr_level = *m_settings;
@@ -136,7 +138,7 @@ void Settings::setVal(QString key_path, QJsonValue value)
         key = i.next();
 
         if( !curr_level.contains(key) ) {
-            qWarning() << "Unable to set undefined option:" << key_path << "key:" << key;
+            qCWarning(settings) << "Unable to set undefined option:" << key_path << "key:" << key;
             return;
         }
 
@@ -145,7 +147,7 @@ void Settings::setVal(QString key_path, QJsonValue value)
 
         if( !i.hasNext() ) {
             if( !curr_level.contains("type") ) {
-                qWarning() << "Unable to find a definition type for option" << key_path << curr_level;
+                qCWarning(settings) << "Unable to find a definition type for option" << key_path << curr_level;
                 return;
             }
             if( value.isUndefined() )
@@ -182,7 +184,7 @@ void Settings::unsetVal(QString key_path)
 bool Settings::validate(QJsonObject option, QJsonValue value)
 {
     if( !option.contains("type") ) {
-        qWarning() << "Wrong option specification provided" << option;
+        qCWarning(settings) << "Wrong option specification provided" << option;
         return false;
     }
 
@@ -190,7 +192,7 @@ bool Settings::validate(QJsonObject option, QJsonValue value)
     QString type = option["type"].toString();
 
     if( !m_types.contains(type) ) {
-        qWarning() << "No type is registered for validation" << option;
+        qCWarning(settings) << "No type is registered for validation" << option;
         return false;
     }
 
@@ -200,13 +202,13 @@ bool Settings::validate(QJsonObject option, QJsonValue value)
     QJSValue result = validation.call(args);
 
     if( !result.isBool() || !result.toBool() ) {
-        qWarning() << "Unsuccessful validation of option" << type << "with value" << value << result.toString();
+        qCWarning(settings) << "Unsuccessful validation of option" << type << "with value" << value << result.toString();
         if( result.isError() ) {
-            qDebug() << "Uncaught exception at line"
-                     << result.property("lineNumber").toInt()
-                     << " " << result.property("message").toString()
-                     << result.property("stack").toString()
-                     << ":" << result.toString();
+            qCDebug(settings) << "Uncaught exception at line"
+                              << result.property("lineNumber").toInt()
+                              << " " << result.property("message").toString()
+                              << result.property("stack").toString()
+                              << ":" << result.toString();
         }
         return false;
     }
@@ -216,7 +218,7 @@ bool Settings::validate(QJsonObject option, QJsonValue value)
 
 void Settings::loadDefinitions()
 {
-    qDebug("Loading settings definitions...");
+    qCDebug(settings) << "Loading settings definitions...";
     QFile definitions_file(":/settings/definitions.json");
     definitions_file.open(QFile::ReadOnly);
     QJsonObject definitions(QJsonDocument::fromJson(definitions_file.readAll()).object());
@@ -250,7 +252,7 @@ void Settings::loadDefinitions()
 
 void Settings::loadSettings()
 {
-    qDebug() << "Loading user settings...";
+    qCDebug(settings) << "Loading user settings...";
     QFile settings_file(m_path);
     try {
         if( settings_file.exists() ) {
@@ -262,20 +264,20 @@ void Settings::loadSettings()
             }
             return;
         }
-        qDebug() << "No settings file is available" << m_path;
+        qCDebug(settings) << "No settings file is available" << m_path;
     } catch( QJsonParseError e ) {
-        qWarning() << "Unable to parse settings file" << m_path << ":" << e.errorString();
+        qCWarning(settings) << "Unable to parse settings file" << m_path << ":" << e.errorString();
     }
 }
 
 void Settings::loadTypes()
 {
-    qDebug() << "Loading used options types...";
-    QJsonObject settings = flattenSettings(m_settings);
-    for( const QString& key : settings.keys() ) {
-        QJsonValue option = settings.value(key);
+    qCDebug(settings) << "Loading used options types...";
+    QJsonObject sets = flattenSettings(m_settings);
+    for( const QString& key : sets.keys() ) {
+        QJsonValue option = sets.value(key);
         if( !option.isObject() || !option.toObject().contains("type") ) {
-            qWarning() << "Unable to load type for improper option definition" << key << option;
+            qCWarning(settings) << "Unable to load type for improper option definition" << key << option;
             continue;
         }
         loadType(option.toObject());
@@ -288,19 +290,19 @@ void Settings::loadType(QJsonObject option)
     if( m_types.contains(type) )
         return;
 
-    qDebug() << "Loading logic for option type" << type;
+    qCDebug(settings) << "Loading logic for option type" << type;
     QFile type_file(":/settings/type/"+type.remove('/')+".jss");
     if( type_file.exists() && type_file.open(QFile::ReadOnly) ) {
         QJSValue type_logic = m_jsengine->evaluate(type_file.readAll(), type_file.fileName());
         if( type_logic.isError() )
-            qWarning() << "Unable to load type logic due to found error:" << type_logic.toString();
+            qCWarning(settings) << "Unable to load type logic due to found error:" << type_logic.toString();
         else
             m_types[type] = type_logic;
     } else
-        qDebug() << "No type file logic found" << type_file.fileName();
+        qCDebug(settings) << "No type file logic found" << type_file.fileName();
 
     if( !m_types.contains(type) ) {
-        qDebug() << "Loading default type logic for" << type;
+        qCDebug(settings) << "Loading default type logic for" << type;
         m_types[type] = m_jsengine->evaluate("(function(){return{'validate': function(OPT, data){return typeof data === OPT.type}}})()");
     }
 }
@@ -316,28 +318,28 @@ void Settings::updateVal(QString key_path, QJsonObject option)
 
 void Settings::saveSettings()
 {
-    qDebug() << "Saving settings to" << m_path;
+    qCDebug(settings) << "Saving settings to" << m_path;
     QFile settings_file(m_path);
     settings_file.open(QFile::WriteOnly);
 
     if( settings_file.isWritable() ) {
-        QJsonObject settings = flattenSettings(m_settings);
-        for( const QString& key : settings.keys() ) {
-            QJsonValue value = settings.value(key);
+        QJsonObject sets = flattenSettings(m_settings);
+        for( const QString& key : sets.keys() ) {
+            QJsonValue value = sets.value(key);
             if( ! value.isObject() ) {
-                qWarning() << "Found orphan option value:" << key << value;
+                qCWarning(settings) << "Found orphan option value:" << key << value;
                 continue;
             }
             QJsonObject def = value.toObject();
             if( def.contains("value") )
-                settings[key] = def.value("value");
+                sets[key] = def.value("value");
             else
-                settings.remove(key);
+                sets.remove(key);
         }
 
-        settings_file.write( QJsonDocument(settings).toJson() );
+        settings_file.write( QJsonDocument(sets).toJson() );
     } else
-        qWarning() << "Unable to write settings file" << m_path;
+        qCWarning(settings) << "Unable to write settings file" << m_path;
 }
 
 QJsonObject Settings::flattenSettings(QJsonObject *settings)

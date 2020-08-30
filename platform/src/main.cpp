@@ -91,6 +91,8 @@ int main(int argc, char *argv[])
 
     qDebug("[h3ds] Init settings...");
     engine.rootContext()->setContextProperty("cfg", Settings::I());
+    Settings::I()->loadSettings();
+    Settings::I()->loadTypes();
 
     qDebug("[h3ds] Init application...");
     engine.rootContext()->setContextProperty("app", Application::I());

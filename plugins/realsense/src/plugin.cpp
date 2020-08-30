@@ -136,6 +136,6 @@ QStringList RealSensePlugin::getAvailableStreams() const
 
 uint8_t *RealSensePlugin::getPCData() const
 {
-    qCDebug(plugin) << "getAvailableStreams()";
+    qCDebug(plugin) << "getPCData()";
     return nullptr;
 }

@@ -94,7 +94,7 @@ bool RealSensePlugin::deinit()
 
     // Stop the plugin service
     QAndroidIntent serviceIntent(QtAndroid::androidActivity().object(),
-                                        "io/stateoftheart/handy3dscanner/plugins/RealSensePlugin");
+                                 "io/stateoftheart/handy3dscanner/plugins/RealSensePlugin");
 
     if( ! QtAndroid::androidActivity().callMethod<jboolean>(
             "stopService", "(Landroid/content/Intent;)Z", serviceIntent.handle().object()) ) {

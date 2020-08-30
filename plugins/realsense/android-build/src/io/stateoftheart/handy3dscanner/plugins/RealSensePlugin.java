@@ -15,9 +15,10 @@ import android.content.IntentFilter;
 import android.os.Handler;
 import android.os.Bundle;
 import android.util.Log;
-import org.qtproject.qt5.android.bindings.QtService;
+import android.app.Service;
+import android.os.IBinder;
 
-public class RealSensePlugin extends QtService
+public class RealSensePlugin extends Service
 {
     private String TAG = "Handy3DScanner::RealSensePlugin";
 
@@ -34,8 +35,8 @@ public class RealSensePlugin extends QtService
 
     @Override
     public void onCreate() {
-        super.onCreate();
         Log.d(TAG, "onCreate");
+        super.onCreate();
 
         manager = (UsbManager) getSystemService(Context.USB_SERVICE);
 
@@ -57,8 +58,14 @@ public class RealSensePlugin extends QtService
 
     @Override
     public void onDestroy() {
-        super.onDestroy();
         Log.d(TAG, "onDestroy");
+        unregisterReceiver(usbManagerBroadcastReceiver);
+        super.onDestroy();
+    }
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
     }
 
     @Override
@@ -128,6 +135,7 @@ public class RealSensePlugin extends QtService
     };
 
     private void checkForDevices() {
+        Log.d(TAG, "checkForDevices()");
         HashMap<String, UsbDevice> deviceList = manager.getDeviceList();
         Iterator<UsbDevice> deviceIterator = deviceList.values().iterator();
 

@@ -95,12 +95,12 @@ bool RealSensePlugin::deinit()
     // Stop the plugin service
     QAndroidIntent serviceIntent(QtAndroid::androidActivity().object(),
                                         "io/stateoftheart/handy3dscanner/plugins/RealSensePlugin");
-    QAndroidJniObject result = QtAndroid::androidActivity().callObjectMethod(
-                "stopService",
-                "(Landroid/content/Intent;)Z",
-                serviceIntent.handle().object());
 
-    qCDebug(plugin) << "Camera connect listening service deactivated";
+    if( ! QtAndroid::androidActivity().callMethod<jboolean>(
+            "stopService", "(Landroid/content/Intent;)Z", serviceIntent.handle().object()) ) {
+        qCWarning(plugin) << "Unable to deactivate camera connect listening service";
+    } else
+        qCDebug(plugin) << "Camera connect listening service deactivated";
 
     // Unbining the native librs methods
     jclass objectClass = env->FindClass("io/stateoftheart/handy3dscanner/plugins/RealSensePlugin");

@@ -66,6 +66,6 @@ task removeBadClasses {
 }
 
 afterEvaluate {
-    compileReleaseSources.finalizedBy(removeBadClasses)
-    compileDebugSources.finalizedBy(removeBadClasses)
+    transformClassesAndResourcesWithSyncLibJarsForRelease.dependsOn(removeBadClasses)
+    transformClassesAndResourcesWithSyncLibJarsForDebug.dependsOn(removeBadClasses)
 }

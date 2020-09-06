@@ -34,6 +34,20 @@ QList<QLatin1String> Plugins::listPlugins()
     return m_plugins.keys();
 }
 
+QStringList Plugins::listPluginsQML(const QString interface_id)
+{
+    QStringList out;
+    for( const QLatin1String &plugin_name : m_plugins.keys() ) {
+        for( const QLatin1String &interface_name : m_plugins[plugin_name].keys() ) {
+            if( interface_name == interface_id ) {
+                out.append(plugin_name);
+                break;
+            }
+        }
+    }
+    return out;
+}
+
 QList<QLatin1String> Plugins::listInterfaces(const QLatin1String &name)
 {
     if( !m_plugins.contains(name) ) {

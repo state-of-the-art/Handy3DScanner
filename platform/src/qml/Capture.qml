@@ -7,19 +7,21 @@ Item {
     id: root_capture
     focus: visible
 
+    property string selected_strem: ""
+
     Rectangle {
-        id: depthViewArea
+        id: monitorArea
         color: "black"
         anchors.fill: parent
 
         Text {
             anchors.centerIn: parent
             color: "#aaa"
-            text: qsTr("Please connect camera to see the stream")
+            text: qsTr("Click here to choose the stream")
         }
 
         VideoPlayer {
-            id: depthView
+            id: monitor
             anchors.fill: parent
             visible: true
         }
@@ -132,6 +134,14 @@ Item {
             width: parent.width/10
             height: width
         }
+
+        MouseArea {
+            anchors.fill: parent
+            onPressed: {
+                var res = plugins.listPluginsQML("io.stateoftheart.handy3dscanner.plugins.VideoSourceInterface")
+                console.log("DEBUG: Found plugins:", res)
+            }
+        }
     }
 
     Rectangle {
@@ -148,21 +158,23 @@ Item {
         radius: 50
 
         // TODO: Reenable functionality
-        /*MouseArea {
+        MouseArea {
             anchors.fill: parent
-            enabled: camera.isStreaming
+            // TODO: Reenable functionality
+            //enabled: camera.isStreaming
             onPressed: {
-                camera.makeShot()
+                // TODO: Reenable functionality
+                //camera.makeShot()
                 shot_flash.start()
             }
-        }*/
+        }
     }
 
     // TODO: Reenable functionality
     /*Connections {
         id: cameraConnections
         target: camera
-        onNewDepthImage: depthView.setImage(image)
+        onNewDepthImage: monitor.setImage(image)
         onIsConnectedChanged: {
             if( camera.isConnected && root_capture.visible )
                 camera.start()

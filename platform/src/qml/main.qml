@@ -20,11 +20,12 @@ Window {
             id: bar
             anchors.right: parent.right
             anchors.left: parent.left
+            currentIndex: 1 // Workaround for freeze bug https://bugreports.qt.io/browse/QTBUG-86460 (qt 5.14.2)
 
-            /*TabButton {
+            TabButton {
                 text: "\uE800 "+qsTr("Capture")
                 font.family: "icons"
-            }*/
+            }
             TabButton {
                 text: "\uE801 "+qsTr("Edit")
                 font.family: "icons"
@@ -42,9 +43,9 @@ Window {
             anchors.left: parent.left
             currentIndex: bar.currentIndex
 
-            /*Capture {
+            Capture {
                 id: capture
-            }*/
+            }
             Edit {
                 id: edit
             }
@@ -64,5 +65,17 @@ Window {
         Component.onCompleted: {
             app.notification.connect(notification)
         }
+    }
+
+    Timer {
+        // Workaround for freeze bug https://bugreports.qt.io/browse/QTBUG-86460 (qt 5.14.2)
+        id: timer_hide_workaround
+        interval: 10
+        onTriggered: bar.currentIndex = 0
+    }
+
+    Component.onCompleted: {
+        // Workaround for freeze bug https://bugreports.qt.io/browse/QTBUG-86460 (qt 5.14.2)
+        timer_hide_workaround.start()
     }
 }

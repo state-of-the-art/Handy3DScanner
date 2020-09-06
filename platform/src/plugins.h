@@ -16,6 +16,7 @@ public:
     inline static void destroyI() { delete s_pInstance; }
 
     QList<QLatin1String> listPlugins();
+    Q_INVOKABLE QStringList listPluginsQML(const QString interface_id);
     QList<QLatin1String> listInterfaces(const QLatin1String &name);
 
     void settingActivePlugin(const QString &key, const QLatin1String &name);

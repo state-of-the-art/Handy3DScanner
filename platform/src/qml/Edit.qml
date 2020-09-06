@@ -51,7 +51,7 @@ Item {
             prevMouseX = mouse.x
             prevMouseY = mouse.y
             console.log("Mouse pressed")
-            if( mouse.button == Qt.LeftButton ) {
+            if( mouse.button === Qt.LeftButton ) {
                 preclick = true
                 preclick_point = Qt.vector2d(mouse.x, mouse.y)
             }
@@ -267,6 +267,7 @@ Item {
 
     Component.onCompleted: {
         // Linking menu & view
+        // TODO: Restore functionality
         editMenu.showPointCloud.connect(pointCloudView.showPointCloud)
         editMenu.hidePointCloud.connect(pointCloudView.hidePointCloud)
     }

@@ -15,7 +15,7 @@ Scene3D {
     property var cameraView: camera_view
     property real pointSize: cfg['UI.Edit.PointCloud.point_size']
     property var primitiveViewType: cfg['UI.Edit.display_mode'] === 'POINTS' ? GeometryRenderer.Points : GeometryRenderer.Triangles
-    property var caster: caster
+    property var caster: caster_obj
 
     onPrimitiveViewTypeChanged: {
         // Going trough the pointclouds and switching index attribute
@@ -90,7 +90,7 @@ Scene3D {
                 Component.onCompleted: pickingSettings.worldSpaceTolerance = 0.01 // To be able to run on Qt > 5.12.0
             },
             ScreenRayCaster {
-                id: caster
+                id: caster_obj
                 onHitsChanged: {
                     if( hits.length > 0 ) {
                         console.log("We've got hits: " + hits.length)

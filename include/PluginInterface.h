@@ -50,6 +50,11 @@ public:
      */
     bool isInitialized() { return m_initialized; }
 
+signals:
+    virtual void appNotice(QString msg) = 0;
+    virtual void appWarning(QString msg) = 0;
+    virtual void appError(QString msg) = 0;
+
 protected:
     /**
      * @brief Used by plugin to set the init state

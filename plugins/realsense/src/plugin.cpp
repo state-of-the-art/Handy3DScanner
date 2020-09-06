@@ -9,11 +9,31 @@ Q_LOGGING_CATEGORY(plugin, "RealSensePlugin")
 #    include <QtAndroidExtras>
 #    include <QAndroidJniObject>
 
+RealSensePlugin* RealSensePlugin::s_pInstance = nullptr;
+
 // Two functions from librelasense used to add/remove device
 extern "C" JNIEXPORT void JNICALL
 Java_com_intel_realsense_librealsense_DeviceWatcher_nAddUsbDevice(JNIEnv *env, jclass type, jstring deviceName_, jint fileDescriptor);
 extern "C" JNIEXPORT void JNICALL
 Java_com_intel_realsense_librealsense_DeviceWatcher_nRemoveUsbDevice(JNIEnv *env, jclass type, jint fileDescriptor);
+
+JNIEXPORT void JNICALL app_notice(JNIEnv *, jclass, jstring message) {
+    QAndroidJniObject msg = message;
+    if( RealSensePlugin::s_pInstance != nullptr )
+        RealSensePlugin::s_pInstance->appNotice(msg.toString());
+}
+
+JNIEXPORT void JNICALL app_warning(JNIEnv *, jclass, jstring message) {
+    QAndroidJniObject msg = message;
+    if( RealSensePlugin::s_pInstance != nullptr )
+        RealSensePlugin::s_pInstance->appWarning(msg.toString());
+}
+
+JNIEXPORT void JNICALL app_error(JNIEnv *, jclass, jstring message) {
+    QAndroidJniObject msg = message;
+    if( RealSensePlugin::s_pInstance != nullptr )
+        RealSensePlugin::s_pInstance->appError(msg.toString());
+}
 
 #endif // ANDROID
 
@@ -34,6 +54,7 @@ bool RealSensePlugin::init()
         return true;
 
     qCDebug(plugin) << "init()";
+    RealSensePlugin::s_pInstance = this;
 
 #ifdef ANDROID
     JavaVM* vm = QAndroidJniEnvironment::javaVM();
@@ -44,7 +65,10 @@ bool RealSensePlugin::init()
 
     // Attach librs native functions to the RealSensePlugin class
     JNINativeMethod methods[] {{"notifyDeviceAttached", "(Ljava/lang/String;I)V", reinterpret_cast<void *>(Java_com_intel_realsense_librealsense_DeviceWatcher_nAddUsbDevice)},
-                               {"notifyDeviceDetached", "(I)V", reinterpret_cast<void *>(Java_com_intel_realsense_librealsense_DeviceWatcher_nRemoveUsbDevice)}};
+                               {"notifyDeviceDetached", "(I)V", reinterpret_cast<void *>(Java_com_intel_realsense_librealsense_DeviceWatcher_nRemoveUsbDevice)},
+                               {"appNotice", "(Ljava/lang/String;)V", reinterpret_cast<void *>(app_notice)},
+                               {"appWarning", "(Ljava/lang/String;)V", reinterpret_cast<void *>(app_warning)},
+                               {"appError", "(Ljava/lang/String;)V", reinterpret_cast<void *>(app_error)}};
 
     jclass activityClass = env->FindClass("io/stateoftheart/handy3dscanner/plugins/RealSensePlugin");
     if( !activityClass ) {
@@ -75,6 +99,8 @@ bool RealSensePlugin::init()
     qCDebug(plugin) << "init() done";
 
     VideoSourceInterface::setInitialized(true);
+
+    appNotice("RealSensePlugin initialized");
 
     return true;
 }
@@ -118,8 +144,12 @@ bool RealSensePlugin::deinit()
     qCDebug(plugin) << "JNI Native methods unregistered";
 #endif // ANDROID
 
+    RealSensePlugin::s_pInstance = nullptr;
+
+    appNotice("RealSensePlugin deinitialized");
     qCDebug(plugin) << "deinit() done";
     VideoSourceInterface::setInitialized(false);
+
     return true;
 }
 

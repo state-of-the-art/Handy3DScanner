@@ -88,6 +88,9 @@ public class RealSensePlugin extends Service
 
     private static native void notifyDeviceAttached(String name, int fd);
     private static native void notifyDeviceDetached(int fd);
+    private static native void appNotice(String message);
+    private static native void appWarning(String message);
+    private static native void appError(String message);
 
     private final BroadcastReceiver usbManagerBroadcastReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
@@ -105,10 +108,13 @@ public class RealSensePlugin extends Service
                                 Log.d(TAG, "inserting device with id: " + device.getDeviceId() + " and file descriptor: " + connection.getFileDescriptor());
                                 connectedDevices.put(device.getDeviceId(), connection.getFileDescriptor());
                                 notifyDeviceAttached(device.getDeviceName(), connection.getFileDescriptor());
-                                Log.d(TAG, "device attached: " + device.getDeviceName() + " - " + device);
+                                Log.d(TAG, "device attached: " + device.getProductName() + " - " + device);
+                                appNotice("device attached: " + device.getProductName());
                             }
                         } else {
                             Log.d(TAG, "permission denied for device " + device);
+                            appWarning("permission denied for device " + device.getProductName());
+                            appError("If you did not saw the request to give permission - it's probably the Android 10 bug: https://github.com/state-of-the-art/Handy3DScanner/issues/68");
                         }
                     }
                 }
@@ -120,6 +126,7 @@ public class RealSensePlugin extends Service
                         UsbDevice device = (UsbDevice)intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
 
                         if( device != null ) {
+                            appNotice("device connected: " + device.getProductName());
                             manager.requestPermission(device, mPermissionIntent);
                         }
                     }
@@ -132,6 +139,7 @@ public class RealSensePlugin extends Service
                         UsbDevice device = (UsbDevice)intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
                         int fd = connectedDevices.get(device.getDeviceId());
                         Log.d(TAG, "device: " + device.getDeviceId() + " disconnected. fd: " + fd);
+                        appNotice("device detached: " + device.getProductName());
                         notifyDeviceDetached(fd);
                         connectedDevices.remove(device.getDeviceId());
                     }

@@ -12,6 +12,7 @@ public:
     inline static Application* I() { return s_pInstance; }
     inline static void destroyI() { delete s_pInstance; }
 
+public slots:
     Q_INVOKABLE void notice(QString message);
     Q_INVOKABLE void warning(QString message);
     Q_INVOKABLE void error(QString message);

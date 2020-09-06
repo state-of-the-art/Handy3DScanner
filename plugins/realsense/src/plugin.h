@@ -12,6 +12,7 @@ class RealSensePlugin : public QObject, public VideoSourceInterface, public Poin
     Q_INTERFACES(VideoSourceInterface PointCloudSourceInterface)
 
 public:
+    static RealSensePlugin *s_pInstance;
     ~RealSensePlugin() override {}
 
     // PluginInterface
@@ -26,5 +27,10 @@ public:
 
     // PointCloudSourceInterface
     uint8_t* getPCData() const override;
+
+signals:
+    void appNotice(QString msg);
+    void appWarning(QString msg);
+    void appError(QString msg);
 };
 #endif // REALSENSEPLUGIN_H

@@ -44,7 +44,7 @@ Item {
             opacity: 0.0
             clip: true
 
-            property bool freeze: false
+            property bool freeze: type === "error"
 
             function removeItem() {
                 if( freeze )
@@ -129,7 +129,7 @@ Item {
             Component.onCompleted: {
                 console.log("Created " + type + " " + index)
                 opacity = 1.0
-                if( type !== "error" || freeze )
+                if( !freeze )
                     timer.start()
             }
         }

@@ -1,5 +1,6 @@
 #include "plugins.h"
 #include "settings.h"
+#include "application.h"
 
 #include <QLoggingCategory>
 #include <QCoreApplication>
@@ -139,6 +140,11 @@ void Plugins::refreshPluginsList()
                 qCWarning(plugins) << "  unable to load plugin:" << lib_name;
                 continue;
             }
+
+            // Connecting the message signals
+            connect(plugin, SIGNAL(appNotice(QString)), Application::I(), SLOT(notice(QString)));
+            connect(plugin, SIGNAL(appWarning(QString)), Application::I(), SLOT(warning(QString)));
+            connect(plugin, SIGNAL(appError(QString)), Application::I(), SLOT(error(QString)));
 
             PluginInterface *plugin_cast = nullptr; // We need to store the same reference to all the interfaces of the same plugin
 

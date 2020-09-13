@@ -6,7 +6,7 @@
 
 #define VideoSourceInterface_iid "io.stateoftheart.handy3dscanner.plugins.VideoSourceInterface"
 
-class VideoSourceInterface : public PluginInterface
+class VideoSourceInterface : virtual public PluginInterface
 {
 public:
     static QLatin1String type() { return QLatin1String(VideoSourceInterface_iid); }

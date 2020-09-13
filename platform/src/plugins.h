@@ -16,14 +16,18 @@ public:
     inline static void destroyI() { delete s_pInstance; }
 
     QList<QLatin1String> listPlugins();
-    Q_INVOKABLE QStringList listPluginsQML(const QString interface_id);
     QList<QLatin1String> listInterfaces(const QLatin1String &name);
 
-    void settingActivePlugin(const QString &key, const QLatin1String &name);
-    void settingActiveInterface(const QString &key, const QLatin1String &name, const QLatin1String &interface);
+    // Plugin functions
+    // TODO: Make available the interfaces directly in QML
+    Q_INVOKABLE QVariantMap getAvailableStreams();
 
-    bool activateInterface(const QLatin1String &name, const QLatin1String &interface);
-    bool deactivateInterface(const QLatin1String &name, const QLatin1String &interface);
+    // Settings binding functions
+    void settingActivePlugin(const QString &key, const QLatin1String &name);
+    void settingActiveInterface(const QString &key, const QLatin1String &name, const QLatin1String &interface_id);
+
+    bool activateInterface(const QLatin1String &name, const QLatin1String &interface_id);
+    bool deactivateInterface(const QLatin1String &name, const QLatin1String &interface_id);
 
 public slots:
     void settingChanged(const QString &key, const QVariant &value);
@@ -34,10 +38,10 @@ private:
     ~Plugins() override;
 
     void refreshPluginsList();
-    template<class T> bool addPlugin(T* obj, PluginInterface **plugin);
+    template<class T> bool addPlugin(T* obj, QObject *plugin);
 
-    QMap<QLatin1String, QMap<QLatin1String, PluginInterface*>> m_plugins; // plugin_name : interface_id : plugin_instance
-    QMap<QLatin1String, QList<PluginInterface*>> m_plugins_active; // interface_id : list of plugins
+    QMap<QLatin1String, QMap<QLatin1String, QObject*>> m_plugins; // plugin_name : interface_id : plugin_instance
+    QMap<QLatin1String, QList<QObject*>> m_plugins_active; // interface_id : list of plugin_instance
 
     QMap<QString, QLatin1String> m_setting_plugin_active; // setting_key : plugin_name
     QMap<QString, QPair<QLatin1String, QLatin1String>> m_setting_plugin_interface_active; // setting_key : (plugin_name, interface_id)

@@ -86,6 +86,7 @@ int main(int argc, char *argv[])
 
     VideoPlayer::declareQML();
     DepthCamera::declareQML();
+
     qDebug("[h3ds] Init plugins...");
     engine.rootContext()->setContextProperty("plugins", Plugins::I());
 

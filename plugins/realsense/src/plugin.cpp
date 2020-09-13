@@ -50,7 +50,7 @@ QStringList RealSensePlugin::requirements() const
 
 bool RealSensePlugin::init()
 {
-    if( VideoSourceInterface::isInitialized() )
+    if( isInitialized() )
         return true;
 
     qCDebug(plugin) << "init()";
@@ -98,7 +98,7 @@ bool RealSensePlugin::init()
 
     qCDebug(plugin) << "init() done";
 
-    VideoSourceInterface::setInitialized(true);
+    setInitialized(true);
 
     appNotice("RealSensePlugin initialized");
 
@@ -107,7 +107,7 @@ bool RealSensePlugin::init()
 
 bool RealSensePlugin::deinit()
 {
-    if( !VideoSourceInterface::isInitialized() )
+    if( !isInitialized() )
         return true;
     qCDebug(plugin) << "deinit()";
 
@@ -148,7 +148,7 @@ bool RealSensePlugin::deinit()
 
     appNotice("RealSensePlugin deinitialized");
     qCDebug(plugin) << "deinit() done";
-    VideoSourceInterface::setInitialized(false);
+    setInitialized(false);
 
     return true;
 }
@@ -162,7 +162,9 @@ bool RealSensePlugin::configure()
 QStringList RealSensePlugin::getAvailableStreams() const
 {
     qCDebug(plugin) << "getAvailableStreams()";
-    return QStringList();
+    QStringList out;
+    out << "test1" << "test2";
+    return out;
 }
 
 uint8_t *RealSensePlugin::getPCData() const

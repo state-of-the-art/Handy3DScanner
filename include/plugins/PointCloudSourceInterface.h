@@ -5,7 +5,7 @@
 
 #define PointCloudSourceInterface_iid "io.stateoftheart.handy3dscanner.plugins.PointCloudSourceInterface"
 
-class PointCloudSourceInterface : public PluginInterface
+class PointCloudSourceInterface : virtual public PluginInterface
 {
 public:
     static QLatin1String type() { return QLatin1String(PointCloudSourceInterface_iid); }

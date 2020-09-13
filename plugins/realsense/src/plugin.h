@@ -9,7 +9,7 @@ class RealSensePlugin : public QObject, public VideoSourceInterface, public Poin
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "io.stateoftheart.handy3dscanner.plugins.RealSensePlugin")
-    Q_INTERFACES(VideoSourceInterface PointCloudSourceInterface)
+    Q_INTERFACES(VideoSourceInterface PointCloudSourceInterface PluginInterface)
 
 public:
     static RealSensePlugin *s_pInstance;
@@ -29,8 +29,8 @@ public:
     uint8_t* getPCData() const override;
 
 signals:
-    void appNotice(QString msg);
-    void appWarning(QString msg);
-    void appError(QString msg);
+    void appNotice(QString msg) override;
+    void appWarning(QString msg) override;
+    void appError(QString msg) override;
 };
 #endif // REALSENSEPLUGIN_H

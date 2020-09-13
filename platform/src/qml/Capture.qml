@@ -138,8 +138,8 @@ Item {
         MouseArea {
             anchors.fill: parent
             onPressed: {
-                var res = plugins.listPluginsQML("io.stateoftheart.handy3dscanner.plugins.VideoSourceInterface")
-                console.log("DEBUG: Found plugins:", res)
+                var res = plugins.getAvailableStreams()
+                console.log(JSON.stringify(res))
             }
         }
     }

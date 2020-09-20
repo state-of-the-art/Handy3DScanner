@@ -16,14 +16,14 @@ public:
     ~RealSensePlugin() override {}
 
     // PluginInterface
-    QLatin1String name() const override;
+    Q_INVOKABLE QString name() const override;
     QStringList requirements() const override;
     bool init() override; // Warning: executing multiple times for each interface
     bool deinit() override;
     bool configure() override;
 
     // VideoSourceInterface
-    QStringList getAvailableStreams() const override;
+    Q_INVOKABLE QStringList getAvailableStreams() const override;
 
     // PointCloudSourceInterface
     uint8_t* getPCData() const override;

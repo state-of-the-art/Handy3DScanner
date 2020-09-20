@@ -22,7 +22,7 @@ public:
     /**
      * @brief Plugin identify name
      */
-    virtual QLatin1String name() const = 0;
+    Q_INVOKABLE virtual QString name() const = 0;
 
     /**
      * @brief List of the plugins required by the plugin

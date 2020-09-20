@@ -138,8 +138,9 @@ Item {
         MouseArea {
             anchors.fill: parent
             onPressed: {
-                var res = plugins.getAvailableStreams()
-                console.log(JSON.stringify(res))
+                var res = plugins.getInterfacePlugins("io.stateoftheart.handy3dscanner.plugins.VideoSourceInterface")
+                for( var obj of res )
+                    console.log(obj.name(), obj.getAvailableStreams())
             }
         }
     }

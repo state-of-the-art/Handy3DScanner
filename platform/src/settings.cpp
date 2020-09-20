@@ -232,7 +232,7 @@ void Settings::loadDefinitions()
     plugin_active["type"] = "boolean";
     plugin_active["default"] = false;
     QString key_path;
-    for( const QLatin1String& name : Plugins::I()->listPlugins() ) {
+    for( const QString& name : Plugins::I()->listPlugins() ) {
         key_path = "Plugins." + name + ".enabled";
         plugin_active["description"] = QLatin1String("Enable plugin '%1'").arg(name);
         setDefinition(key_path, plugin_active);

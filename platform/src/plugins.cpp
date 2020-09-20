@@ -29,12 +29,12 @@ Plugins::~Plugins()
     qCDebug(plugins, "Destroy object");
 }
 
-QList<QLatin1String> Plugins::listPlugins()
+QList<QString> Plugins::listPlugins()
 {
     return m_plugins.keys();
 }
 
-QList<QLatin1String> Plugins::listInterfaces(const QLatin1String &name)
+QList<QLatin1String> Plugins::listInterfaces(const QString &name)
 {
     if( !m_plugins.contains(name) ) {
         qCWarning(plugins) << __func__ << "Not found plugin" << name;
@@ -43,35 +43,26 @@ QList<QLatin1String> Plugins::listInterfaces(const QLatin1String &name)
     return m_plugins[name].keys();
 }
 
-QVariantMap Plugins::getAvailableStreams()
+QList<QObject*> Plugins::getInterfacePlugins(const QString &name)
 {
-    QVariantMap out;
-    if( !m_plugins_active.contains(QLatin1String(VideoSourceInterface_iid)) )
-        return out;
-    for( QObject* plugin : m_plugins_active[QLatin1String(VideoSourceInterface_iid)] ) {
-        auto interface = qobject_cast<VideoSourceInterface *>(plugin);
-        if( !interface ) {
-            auto plugin_if = qobject_cast<PluginInterface *>(plugin);
-            qCWarning(plugins) << __func__ << "Unable to get the required interface for"
-                               << (plugin_if ? plugin_if->name() : QLatin1String("unknown plugin"));
-            continue;
-        }
-        out[interface->name()] = interface->getAvailableStreams();
-    }
-    return out;
+    QLatin1String iid = QLatin1String((name.toLatin1()));
+    if( m_plugins_active.contains(iid) )
+        return m_plugins_active[iid];
+    else
+        return QList<QObject*>();
 }
 
-void Plugins::settingActivePlugin(const QString &key, const QLatin1String &name)
+void Plugins::settingActivePlugin(const QString &key, const QString &name)
 {
     m_setting_plugin_active.insert(key, name);
 }
 
-void Plugins::settingActiveInterface(const QString &key, const QLatin1String &name, const QLatin1String &interface)
+void Plugins::settingActiveInterface(const QString &key, const QString &name, const QLatin1String &interface)
 {
-    m_setting_plugin_interface_active.insert(key, QPair<QLatin1String, QLatin1String>(name, interface));
+    m_setting_plugin_interface_active.insert(key, QPair<QString, QLatin1String>(name, interface));
 }
 
-bool Plugins::activateInterface(const QLatin1String &name, const QLatin1String &interface_id)
+bool Plugins::activateInterface(const QString &name, const QLatin1String &interface_id)
 {
     // Don't activate interface if the plugin is not enabled
     if( !Settings::I()->val(m_setting_plugin_active.key(name)).toBool() )
@@ -90,7 +81,7 @@ bool Plugins::activateInterface(const QLatin1String &name, const QLatin1String &
     return false;
 }
 
-bool Plugins::deactivateInterface(const QLatin1String &name, const QLatin1String &interface_id)
+bool Plugins::deactivateInterface(const QString &name, const QLatin1String &interface_id)
 {
     QObject* plugin = m_plugins[name][interface_id];
     PluginInterface* plugin_if = qobject_cast<PluginInterface *>(plugin);
@@ -116,7 +107,7 @@ bool Plugins::deactivateInterface(const QLatin1String &name, const QLatin1String
 void Plugins::settingChanged(const QString &key, const QVariant &value)
 {
     if( m_setting_plugin_active.contains(key) ) {
-        QLatin1String name = m_setting_plugin_active[key];
+        QString name = m_setting_plugin_active[key];
         qCDebug(plugins) << "Set plugin" << name << "active" << value.toBool();
         if( value.toBool() ) {
             auto it = m_setting_plugin_interface_active.begin();
@@ -198,11 +189,11 @@ bool Plugins::addPlugin(T *obj, QObject *plugin)
         return false;
 
     if( m_plugins.contains(obj->name()) && m_plugins[obj->name()].contains(obj->type()) ) {
-        qCWarning(plugins, "  plugin already loaded, skipping: %s::%s", obj->name().data(), obj->type().data());
+        qCWarning(plugins, "  plugin already loaded, skipping: %s::%s", obj->name().toUtf8().data(), obj->type().data());
         return false;
     }
 
     m_plugins[obj->name()][obj->type()] = plugin;
-    qCDebug(plugins, "  loaded plugin: %s::%s", obj->name().data(), obj->type().data());
+    qCDebug(plugins, "  loaded plugin: %s::%s", obj->name().toUtf8().data(), obj->type().data());
     return true;
 }

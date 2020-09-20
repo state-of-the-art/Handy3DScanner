@@ -37,7 +37,7 @@ JNIEXPORT void JNICALL app_error(JNIEnv *, jclass, jstring message) {
 
 #endif // ANDROID
 
-QLatin1String RealSensePlugin::name() const
+QString RealSensePlugin::name() const
 {
     return QLatin1String(plugin().categoryName());
 }

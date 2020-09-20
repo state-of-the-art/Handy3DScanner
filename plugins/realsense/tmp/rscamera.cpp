@@ -4,12 +4,10 @@
 #include <QLoggingCategory>
 #include <limits>
 
-#include "src/camera/pointcloud.h"
-#include "src/settings.h"
+//#include "camera/pointcloud.h"
+//#include "settings.h"
 
 Q_LOGGING_CATEGORY(rscamera, "RSCamera")
-
-RSCamera* RSCamera::s_pInstance = nullptr;
 
 const std::string NO_CAMERA_MESSAGE = "No camera connected, please connect 1 or more";
 
@@ -23,12 +21,6 @@ RSCamera::RSCamera(const QString &serialNumber)
 {
     qCDebug(rscamera) << "Init rscamera...";
     init();
-
-    connect(&m_cameraManager, &RSManager::cameraConnected,
-            this, &RSCamera::onCameraConnected);
-    connect(&m_cameraManager, &RSManager::cameraDisconnected,
-            this, &RSCamera::onCameraDisconnected);
-    m_cameraManager.setup();
 
     m_generator.moveToThread(&m_generatorThread);
 
@@ -156,14 +148,23 @@ void RSCamera::onNewPointCloud(PointCloud *pc)
     addPointCloud(pc);
 }
 
-void RSCamera::onCameraConnected(const QString &serialNumber)
+void RSCamera::onGeneratorErrorOccurred(const QString &error)
 {
-    qCDebug(rscamera) << "Connected: " << serialNumber << m_serialNumber;
+    qCDebug(rscamera) << error;
+    stop();
+    setIsStreaming(false);
+    setIsScanning(false);
+    emit errorOccurred(error);
+}
+
+void RealSensePlugin::onCameraConnected(const QString &serialNumber)
+{
+    qCDebug(plugin) << "Connected: " << serialNumber << m_serialNumber;
     QString usb_version = m_cameraManager.getCameraInfo(serialNumber, RS2_CAMERA_INFO_USB_TYPE_DESCRIPTOR);
     setConnectionType("USB "+usb_version);
-    qCDebug(rscamera) << "USB version:" << usb_version;
+    qCDebug(plugin) << "USB version:" << usb_version;
 
-    qCDebug(rscamera) << "Setting stream parameters";
+    qCDebug(plugin) << "Setting stream parameters";
     m_config.enable_device(serialNumber.toStdString());
     m_config.disable_all_streams();
 
@@ -180,9 +181,9 @@ void RSCamera::onCameraConnected(const QString &serialNumber)
     setIsConnected(true);
 }
 
-void RSCamera::onCameraDisconnected(const QString &serialNumber)
+void RealSensePlugin::onCameraDisconnected(const QString &serialNumber)
 {
-    qCDebug(rscamera) << "Disconnected: " << serialNumber;
+    qCDebug(plugin) << "Disconnected: " << serialNumber;
     if( m_serialNumber == DEFAULT_DEVICE && serialNumber == m_scanningDeviceSerial ) {
         if( getIsStreaming() )
             stop();
@@ -195,13 +196,4 @@ void RSCamera::onCameraDisconnected(const QString &serialNumber)
         setIsConnected(false);
     }
     setConnectionType("");
-}
-
-void RSCamera::onGeneratorErrorOccurred(const QString &error)
-{
-    qCDebug(rscamera) << error;
-    stop();
-    setIsStreaming(false);
-    setIsScanning(false);
-    emit errorOccurred(error);
 }

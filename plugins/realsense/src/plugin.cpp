@@ -44,7 +44,7 @@ QString RealSensePlugin::name() const
 
 QStringList RealSensePlugin::requirements() const
 {
-    qCDebug(plugin) << "requirements()";
+    qCDebug(plugin) << __func__;
     return QStringList();
 }
 
@@ -53,8 +53,11 @@ bool RealSensePlugin::init()
     if( isInitialized() )
         return true;
 
-    qCDebug(plugin) << "init()";
+    qCDebug(plugin) << __func__;
     RealSensePlugin::s_pInstance = this;
+
+    // Setup the manager
+    m_rsmanager.setup();
 
 #ifdef ANDROID
     JavaVM* vm = QAndroidJniEnvironment::javaVM();
@@ -109,7 +112,7 @@ bool RealSensePlugin::deinit()
 {
     if( !isInitialized() )
         return true;
-    qCDebug(plugin) << "deinit()";
+    qCDebug(plugin) << __func__;
 
 #ifdef ANDROID
     JavaVM* vm = QAndroidJniEnvironment::javaVM();
@@ -144,6 +147,9 @@ bool RealSensePlugin::deinit()
     qCDebug(plugin) << "JNI Native methods unregistered";
 #endif // ANDROID
 
+    // TODO: Deinit the manager
+    //m_rsmanager.setup();
+
     RealSensePlugin::s_pInstance = nullptr;
 
     appNotice("RealSensePlugin deinitialized");
@@ -155,20 +161,18 @@ bool RealSensePlugin::deinit()
 
 bool RealSensePlugin::configure()
 {
-    qCDebug(plugin) << "configure()";
+    qCDebug(plugin) << __func__;
     return true;
 }
 
 QStringList RealSensePlugin::getAvailableStreams() const
 {
-    qCDebug(plugin) << "getAvailableStreams()";
-    QStringList out;
-    out << "test1" << "test2";
-    return out;
+    qCDebug(plugin) << __func__;
+    return m_rsmanager.getAvailableStreams();
 }
 
 uint8_t *RealSensePlugin::getPCData() const
 {
-    qCDebug(plugin) << "getPCData()";
+    qCDebug(plugin) << __func__;
     return nullptr;
 }

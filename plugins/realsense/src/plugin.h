@@ -5,6 +5,8 @@
 #include "plugins/VideoSourceInterface.h"
 #include "plugins/PointCloudSourceInterface.h"
 
+#include "rsmanager.h"
+
 class RealSensePlugin : public QObject, public VideoSourceInterface, public PointCloudSourceInterface
 {
     Q_OBJECT
@@ -32,5 +34,8 @@ signals:
     void appNotice(QString msg) override;
     void appWarning(QString msg) override;
     void appError(QString msg) override;
+
+private:
+    RSManager m_rsmanager; // Manager to listen on connected/disconnected cameras
 };
 #endif // REALSENSEPLUGIN_H

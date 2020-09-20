@@ -139,8 +139,12 @@ Item {
             anchors.fill: parent
             onPressed: {
                 var res = plugins.getInterfacePlugins("io.stateoftheart.handy3dscanner.plugins.VideoSourceInterface")
-                for( var obj of res )
-                    console.log(obj.name(), obj.getAvailableStreams())
+                for( var obj of res ) {
+                    console.log(obj.name())
+                    for( var stream of obj.getAvailableStreams() ) {
+                        console.log(stream)
+                    }
+                }
             }
         }
     }

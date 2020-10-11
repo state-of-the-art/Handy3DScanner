@@ -6,6 +6,8 @@
 #include <QtGui/qimage.h>
 #include <QtQml/qqml.h>
 
+#include "plugins/VideoSourceInterface.h"
+
 class VideoPlayer
     : public QQuickPaintedItem
 {
@@ -14,16 +16,20 @@ class VideoPlayer
 public:
     VideoPlayer();
 
-    Q_INVOKABLE void setImage(QImage image);
+    Q_INVOKABLE void setStream(/*VideoSourceInterface*/QObject* plugin, QString stream_path);
     Q_INVOKABLE void reset();
 
-    void paint(QPainter *painter);
+    void paint(QPainter *painter) override;
 
     static void declareQML() {
         qmlRegisterType<VideoPlayer>("VideoPlayer", 1, 0, "VideoPlayer");
     }
 
 private:
+    QObject *m_stream;
     QImage m_image;
+
+public slots:
+    void setImage(const QImage image);
 };
 #endif // VIDEOPLAYER_H

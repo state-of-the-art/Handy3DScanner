@@ -1,57 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <resources>
-    <!-- Intel D400/PSR depth camera 8086:0ad1 -->
-    <usb-device vendor-id="8086" product-id="2769"/>
-    <!-- Intel D410/ASR depth camera 8086:0ad2 -->
-    <usb-device vendor-id="8086" product-id="2770"/>
-    <!-- Intel D415/ASRC depth camera 8086:0ad3 -->
-    <usb-device vendor-id="8086" product-id="2771"/>
-    <!-- Intel D430/AWG depth camera 8086:0ad4 -->
-    <usb-device vendor-id="8086" product-id="2772"/>
-    <!-- Intel D450/AWGT depth camera 8086:0ad5 -->
-    <usb-device vendor-id="8086" product-id="2773"/>
-    <!-- Intel D420/PWG depth camera 8086:0af6 -->
-    <usb-device vendor-id="8086" product-id="2806"/>
-    <!-- Intel D420_MM/PWGT depth camera 8086:0afe -->
-    <usb-device vendor-id="8086" product-id="2814"/>
-    <!-- Intel D410_MM/ASRT depth camera 8086:0aff -->
-    <usb-device vendor-id="8086" product-id="2815"/>
-    <!-- Intel D400_MM/PSRT depth camera 8086:0b00 -->
-    <usb-device vendor-id="8086" product-id="2816"/>
-    <!-- Intel D430_MM/AWGCT depth camera 8086:0b01 -->
-    <usb-device vendor-id="8086" product-id="2817"/>
-    <!-- Intel D460/DS5U depth camera 8086:0b03 -->
-    <usb-device vendor-id="8086" product-id="2819"/>
-    <!-- Intel D435/AWGC depth camera 8086:0b07 -->
-    <usb-device vendor-id="8086" product-id="2823"/>
-    <!-- Intel D435i depth camera 8086:0b3a -->
-    <usb-device vendor-id="8086" product-id="2874"/>
-    <!-- Intel SR300 depth camera 8086:0aa5 -->
-    <usb-device vendor-id="8086" product-id="2725"/>
-    <!-- Intel D405 S depth camera 8086:0b0c -->
-    <usb-device vendor-id="8086" product-id="2828"/>
-    <!-- Intel L500 depth camera 8086:0b0d -->
-    <usb-device vendor-id="8086" product-id="2829"/>
-
-    <!-- Other Intel RealSense UVC cameras (R200, F200, LR200, ZR300) -->
-    <!-- 8086:0a80 -->
-    <usb-device vendor-id="8086" product-id="2688"/>
-    <!-- 8086:0a66 -->
-    <usb-device vendor-id="8086" product-id="2662"/>
-    <!-- 8086:0abf -->
-    <usb-device vendor-id="8086" product-id="2751"/>
-    <!-- 8086:0acb -->
-    <usb-device vendor-id="8086" product-id="2763"/>
-    <!-- 8086:0ad0 -->
-    <usb-device vendor-id="8086" product-id="2768"/>
-    <!-- 8086:04b4 -->
-    <usb-device vendor-id="8086" product-id="1204"/>
-    <!-- 8086:0ad6 -->
-    <usb-device vendor-id="8086" product-id="2774"/>
-
-    <!-- 8087:0af3 -->
-    <usb-device vendor-id="8087" product-id="2803"/>
-    <!-- 03e7:2150 -->
-    <usb-device vendor-id="999" product-id="2150"/>
+    <usb-device vendor-id="0x08086" />
+    <usb-device vendor-id="0x08087" />
+    <usb-device vendor-id="0x003E7" />
 </resources>

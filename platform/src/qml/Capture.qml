@@ -7,8 +7,6 @@ Item {
     id: root_capture
     focus: visible
 
-    property string selected_strem: ""
-
     Rectangle {
         id: monitorArea
         color: "black"
@@ -138,12 +136,15 @@ Item {
         MouseArea {
             anchors.fill: parent
             onPressed: {
-                var res = plugins.getInterfacePlugins("io.stateoftheart.handy3dscanner.plugins.VideoSourceInterface")
-                for( var obj of res ) {
-                    console.log(obj.name())
-                    for( var stream of obj.getAvailableStreams() ) {
-                        console.log(stream)
-                    }
+                var list = plugins.getInterfacePlugins("io.stateoftheart.handy3dscanner.plugins.VideoSourceInterface")
+                for( var plugin of list ) {
+                    var streams = plugin.getAvailableStreams()
+                    console.log(plugin.name() + " - found " + streams.length + " streams")
+                    /*for( var name of streams ) {
+                        console.log(name)
+                    }*/
+                    //monitor.setStream(plugin, /*name*/"821212061876->Stereo Module::Depth->(1280x720, Z16, 30)")
+                    monitor.setStream(plugin, /*name*/"821212061876->RGB Camera::Color->(1920x1080, RGB8, 30)")
                 }
             }
         }

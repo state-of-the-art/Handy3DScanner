@@ -1,4 +1,5 @@
-#include "rsworker.h"
+#include "rsdeviceworker.h"
+
 #include <QDebug>
 #include <QDateTime>
 #include <QFile>
@@ -7,45 +8,47 @@
 #include <QTimer>
 #include <QLoggingCategory>
 
-#include "src/camera/pointcloud.h"
-#include "src/camera/cameraposition.h"
-#include "src/settings.h"
+Q_LOGGING_CATEGORY(rsdeviceworker, "RealSensePlugin::RSDeviceWorker")
 
-Q_LOGGING_CATEGORY(rsworker, "RSWorker")
+//#include "src/camera/pointcloud.h"
+//#include "src/camera/cameraposition.h"
+//#include "src/settings.h"
 
-RSWorker::RSWorker(rs2::pipeline *pipe, rs2::frame_queue *queue, QObject *parent)
+#include "rsdevice.h"
+
+RSDeviceWorker::RSDeviceWorker(rs2::pipeline *pipe, rs2::frame_queue *queue, RSDevice *device)
     : m_mutex()
     , m_pipe(pipe)
     , m_queue(queue)
-    , m_parent(parent)
+    , m_device(device)
 {
-    qCDebug(rsworker) << "Init RSWorker";
+    qCDebug(rsdeviceworker) << "Init RSDeviceWorker";
 }
 
-void RSWorker::makeShot()
+void RSDeviceWorker::makeShot()
 {
     m_make_shot = true;
 }
 
-void RSWorker::stop()
+void RSDeviceWorker::stop()
 {
     QMutexLocker locker(&m_mutex);
     m_stopped = true;
 }
 
-void RSWorker::setPipeline(rs2::pipeline *pipe)
+void RSDeviceWorker::setPipeline(rs2::pipeline *pipe)
 {
     m_pipe = pipe;
 }
 
-void RSWorker::doWork()
+void RSDeviceWorker::doWork()
 {
     rs2::colorizer color_map;
     m_stopped = false;
 
-    m_use_disparity_filter = Settings::I()->value("Camera.Streams.Depth.use_disparity_filter").toBool();
-    m_use_spatial_filter = Settings::I()->value("Camera.Streams.Depth.use_spatial_filter").toBool();
-    m_use_temporal_filter = Settings::I()->value("Camera.Streams.Depth.use_temporal_filter").toBool();
+    m_use_disparity_filter = true;//Settings::I()->value("Camera.Streams.Depth.use_disparity_filter").toBool();
+    m_use_spatial_filter = true;//Settings::I()->value("Camera.Streams.Depth.use_spatial_filter").toBool();
+    m_use_temporal_filter = true;//Settings::I()->value("Camera.Streams.Depth.use_temporal_filter").toBool();
 
     // Filters to improve the quality
     rs2::decimation_filter dec_filter;                 // Decimation - reduces depth frame density
@@ -72,7 +75,7 @@ void RSWorker::doWork()
         frame_timer.start();
         while( true ) {
             if( m_pipe == nullptr ) {
-                qCWarning(rsworker) << "Pipeline is not defined";
+                qCWarning(rsdeviceworker) << "Pipeline is not defined";
                 break;
             }
 
@@ -105,28 +108,55 @@ void RSWorker::doWork()
                 }
             }
 
-            rs2::depth_frame depth_frame = frames.get_depth_frame();
-            //qCDebug(rsworker) << "Distance to center:" << depth_frame.get_distance(depth_frame.get_width()/2, depth_frame.get_height()/2);
+            auto enabled_streams = m_device->getVideoStreams();
 
-            rs2::depth_frame filtered = depth_frame;
+            for( VideoSourceStreamObject* stream : enabled_streams ) {
+                if( stream->rs2_stream_type == RS2_STREAM_DEPTH ) {
+                    rs2::depth_frame depth_frame = frames.get_depth_frame();
+                    if( ! depth_frame )
+                        continue;
+                    //qCDebug(rsdeviceworker) << "Distance to center:" << depth_frame.get_distance(depth_frame.get_width()/2, depth_frame.get_height()/2);
 
-            //filtered = dec_filter.process(filtered);
-            if( m_use_disparity_filter )
-                filtered = depth_to_disparity.process(filtered);
-            if( m_use_spatial_filter )
-                filtered = spat_filter.process(filtered);
-            if( m_use_temporal_filter )
-                filtered = temp_filter.process(filtered);
-            if( m_use_disparity_filter )
-                filtered = disparity_to_depth.process(filtered);
+                    rs2::depth_frame filtered = depth_frame;
 
-            emit newDepthImage(frameToQImage(color_map.colorize(filtered)));
-            //emit newColorImage(frameToQImage(frames.get_color_frame()));
+                    //filtered = dec_filter.process(filtered);
+                    if( m_use_disparity_filter )
+                        filtered = depth_to_disparity.process(filtered);
+                    if( m_use_spatial_filter )
+                        filtered = spat_filter.process(filtered);
+                    if( m_use_temporal_filter )
+                        filtered = temp_filter.process(filtered);
+                    if( m_use_disparity_filter )
+                        filtered = disparity_to_depth.process(filtered);
+
+                    emit stream->newStreamImage(frameToQImage(color_map.colorize(filtered)));
+                    break;
+                } else if( stream->rs2_stream_type == RS2_STREAM_COLOR ) {
+                    rs2::video_frame frame = frames.get_color_frame();
+                    if( ! frame )
+                        continue;
+                    emit stream->newStreamImage(frameToQImage(frame));
+                    break;
+                } else if( stream->rs2_stream_type == RS2_STREAM_INFRARED ) {
+                    rs2::video_frame frame = frames.get_infrared_frame();
+                    if( ! frame )
+                        continue;
+                    emit stream->newStreamImage(frameToQImage(frame));
+                    break;
+                } else if( stream->rs2_stream_type == RS2_STREAM_FISHEYE ) {
+                    rs2::video_frame frame = frames.get_fisheye_frame();
+                    if( ! frame )
+                        continue;
+                    emit stream->newStreamImage(frameToQImage(frame));
+                    break;
+                } else
+                    qCWarning(rsdeviceworker) << "Unable to process stream" << rs2_stream_to_string((rs2_stream)stream->rs2_stream_type);
+            }
 
             fpt += fpt_timer.nsecsElapsed();
 
-            if( m_make_shot ) {
-                qCDebug(rsworker) << "Saving pointcloud to memory storage";
+            /*if( m_make_shot ) {
+                qCDebug(rsdeviceworker) << "Saving pointcloud to memory storage";
 
                 points = pc.calculate(filtered);
 
@@ -134,17 +164,17 @@ void RSWorker::doWork()
                 if( color )
                     pc.map_to(color);
                 else
-                    qCWarning(rsworker) << "No color frame found";
+                    qCWarning(rsdeviceworker) << "No color frame found";
 
                 PointCloud *pc = toPointCloud(points, depth_frame, color, static_cast<size_t>(filtered.get_width()));
 
                 if( pc != nullptr ) {
                     m_make_shot = false;
                     // Push object to the parent thread to use it there
-                    pc->moveToThread(m_parent->thread());
+                    pc->moveToThread(m_device->thread());
                     emit newPointCloud(pc);
                 }
-            }
+            }*/
         }
     } catch( const rs2::error & e ) {
         emit errorOccurred(e.what());
@@ -155,7 +185,7 @@ void RSWorker::doWork()
     }
 }
 
-PointCloud* RSWorker::toPointCloud(rs2::points points, rs2::depth_frame depth_frame, rs2::video_frame texture, size_t width)
+/*PointCloud* RSDeviceWorker::toPointCloud(rs2::points points, rs2::depth_frame depth_frame, rs2::video_frame texture, size_t width)
 {
     qCDebug(rsworker) << "Creating a new PointCloud object";
     const auto vertices = points.get_vertices();
@@ -237,9 +267,9 @@ PointCloud* RSWorker::toPointCloud(rs2::points points, rs2::depth_frame depth_fr
     }
 
     return out;
-}
+}*/
 
-QImage RSWorker::frameToQImage(const rs2::frame& f)
+QImage RSDeviceWorker::frameToQImage(const rs2::frame& f)
 {
     using namespace rs2;
 

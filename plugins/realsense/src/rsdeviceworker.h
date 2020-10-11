@@ -1,5 +1,5 @@
-#ifndef RSWORKER_H
-#define RSWORKER_H
+#ifndef RSDEVICEWORKER_H
+#define RSDEVICEWORKER_H
 
 #include <librealsense2/rs.hpp>
 
@@ -8,15 +8,17 @@
 #include <QMutex>
 #include <QImage>
 
-class PointCloud;
+//class PointCloud;
 
-class RSWorker
+class RSDevice;
+
+class RSDeviceWorker
     : public QObject
 {
     Q_OBJECT
 
 public:
-    explicit RSWorker(rs2::pipeline *pipe, rs2::frame_queue *queue, QObject *parent);
+    explicit RSDeviceWorker(rs2::pipeline *pipe, rs2::frame_queue *queue, RSDevice *device);
     void makeShot();
     void stop();
     void setPipeline(rs2::pipeline *pipe);
@@ -28,14 +30,14 @@ private:
     rs2::pipeline *m_pipe;
     rs2::frame_queue *m_queue;
 
-    QObject *m_parent;
+    RSDevice *m_device;
 
     bool m_use_disparity_filter;
     bool m_use_spatial_filter;
     bool m_use_temporal_filter;
 
     QImage frameToQImage(const rs2::frame &f);
-    PointCloud* toPointCloud(rs2::points points, rs2::depth_frame depth_frame, rs2::video_frame texture, size_t width = 0);
+    //PointCloud* toPointCloud(rs2::points points, rs2::depth_frame depth_frame, rs2::video_frame texture, size_t width = 0);
 
 public slots:
     void doWork();
@@ -43,7 +45,7 @@ public slots:
 signals:
     void newDepthImage(QImage image);
     void newColorImage(QImage image);
-    void newPointCloud(PointCloud* pc);
+    //void newPointCloud(PointCloud* pc);
     void stopped();
     void errorOccurred(const QString &error);
 
@@ -51,4 +53,4 @@ signals:
     void streamFWT(const qreal fwt); // Frame wait time (sec)
     void streamFPT(const qreal fpt); // Frame processing time (sec)
 };
-#endif // RSWORKER_H
+#endif // RSDEVICEWORKER_H

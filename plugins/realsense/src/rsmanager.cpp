@@ -77,10 +77,23 @@ void RSManager::removeDevices(const rs2::event_information& info)
     }
 }
 
-QString RSManager::streamName(rs2::sensor &sensor, rs2::stream_profile &sp) const
+RSDevice* RSManager::getDevice(const QString serial)
+{
+    for( RSDevice *dev : m_device_list ) {
+        if( dev->serialNumber() != serial )
+            continue;
+        return dev;
+    }
+
+    RSDevice* device = new RSDevice(this, serial);
+    return device;
+}
+
+QString RSManager::streamPath(rs2::sensor &sensor, rs2::stream_profile &sp) const
 {
     auto vp = sp.as<rs2::video_stream_profile>();
-    QString name = QString("%1::%2 (%3x%4, %5, %6)")
+    QString name = QString("%1->%2::%3->(%4x%5, %6, %7)")
+        .arg(sensor.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER))
         .arg(sensor.get_info(RS2_CAMERA_INFO_NAME))
         .arg(QString::fromStdString(sp.stream_name()))
         .arg(vp ? vp.width() : -1)
@@ -106,13 +119,45 @@ QStringList RSManager::getAvailableStreams() const
             qCDebug(rsmanager) << __func__ << "  Check sensor:" << sensor.get_info(RS2_CAMERA_INFO_NAME);
             auto profiles = sensor.get_stream_profiles();
             for( auto profile : profiles ) {
-                qCDebug(rsmanager) << __func__ << "    Check profile:" << QString::fromStdString(profile.stream_name());
-                out.append(streamName(sensor, profile));
+                out.append(streamPath(sensor, profile));
             }
         }
     }
-    out.sort();
+    qCDebug(rsmanager) << __func__ << "Found " << out.length() << "profiles";
     return out;
+}
+
+VideoSourceStreamObject* RSManager::getVideoStream(const QString path)
+{
+    qCDebug(rsmanager) << __func__ << "Get video stream:" << path;
+    QStringList splitpath = path.split("->");
+
+    RSDevice *device = getDevice(splitpath[0]);
+
+    QString name = QString("%1->%2").arg(splitpath[1]).arg(splitpath[2]);
+    return device->connectStream(name);
+}
+
+rs2::stream_profile RSManager::getStreamProfile(const QString serial, const QString name)
+{
+    QMutexLocker locker(&m_mutex);
+    QHash<QString, rs2::device>::const_iterator it = m_connected_devices.find(serial);
+    if( it == m_connected_devices.end() ) {
+        qCWarning(rsmanager) << __func__ << "Unable to find connected device:" << serial;
+        return rs2::stream_profile();
+    }
+
+    rs2::device dev = it.value();
+    QString fullpath = QString("%1->%2").arg(serial).arg(name);
+    for( auto sensor : dev.query_sensors() ) {
+        auto profiles = sensor.get_stream_profiles();
+        for( auto profile : profiles ) {
+            if( streamPath(sensor, profile) == fullpath )
+                return profile;
+        }
+    }
+
+    return rs2::stream_profile();
 }
 
 int RSManager::getConnectedDevicesSize()
@@ -121,7 +166,7 @@ int RSManager::getConnectedDevicesSize()
     return m_connected_devices.size();
 }
 
-QString RSManager::getCameraInfo(QString serial, rs2_camera_info field)
+QString RSManager::getDeviceInfo(QString serial, rs2_camera_info field)
 {
     QMutexLocker locker(&m_mutex);
     QHash<QString, rs2::device>::const_iterator i = m_connected_devices.find(serial);

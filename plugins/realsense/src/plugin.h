@@ -26,6 +26,7 @@ public:
 
     // VideoSourceInterface
     Q_INVOKABLE QStringList getAvailableStreams() const override;
+    Q_INVOKABLE VideoSourceStreamObject* getVideoStream(const QString path) override;
 
     // PointCloudSourceInterface
     uint8_t* getPCData() const override;

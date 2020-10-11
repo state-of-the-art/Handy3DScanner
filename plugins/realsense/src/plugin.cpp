@@ -171,6 +171,11 @@ QStringList RealSensePlugin::getAvailableStreams() const
     return m_rsmanager.getAvailableStreams();
 }
 
+VideoSourceStreamObject *RealSensePlugin::getVideoStream(const QString path)
+{
+    return m_rsmanager.getVideoStream(path);
+}
+
 uint8_t *RealSensePlugin::getPCData() const
 {
     qCDebug(plugin) << __func__;

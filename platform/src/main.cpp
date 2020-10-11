@@ -12,8 +12,6 @@
 #include "application.h"
 
 #include "videoplayer.h"
-#include "camera/depthcamera.h"
-//#include "provider/realsense/rscamera.h"
 #include "camera/cameraposition.h"
 #include "scenefile.h"
 
@@ -85,7 +83,6 @@ int main(int argc, char *argv[])
     QQmlApplicationEngine engine;
 
     VideoPlayer::declareQML();
-    DepthCamera::declareQML();
 
     qDebug("[h3ds] Init plugins...");
     engine.rootContext()->setContextProperty("plugins", Plugins::I());
@@ -99,8 +96,6 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("app", Application::I());
 
     qDebug("[h3ds] Init camera...");
-    // TODO: Restore functional
-    //engine.rootContext()->setContextProperty("camera", RSCamera::I());
     engine.rootContext()->setContextProperty("cameraPos", CameraPosition::I());
 
     engine.rootContext()->setContextProperty("sceneFile", SceneFile::I());
@@ -135,8 +130,6 @@ int main(int argc, char *argv[])
 #endif
     SceneFile::destroyI();
     CameraPosition::destroyI();
-    // TODO: Restore functional
-    //RSCamera::destroyI();
 
     //Application::destroyI();
     Settings::destroyI();

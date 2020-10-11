@@ -8,7 +8,8 @@
 #include <QMutex>
 #include <QHash>
 
-//#include "rscamera.h"
+#include "VideoSource/VideoSourceStream.h"
+#include "rsdevice.h"
 
 class RSManager
     : public QObject
@@ -20,9 +21,11 @@ public:
     void setup();
     int getConnectedDevicesSize();
 
-    QString getCameraInfo(QString serial, rs2_camera_info field);
+    QString getDeviceInfo(QString serial, rs2_camera_info field);
 
     QStringList getAvailableStreams() const;
+    VideoSourceStreamObject* getVideoStream(const QString path);
+    rs2::stream_profile getStreamProfile(const QString serial, const QString name);
 
 private:
     rs2::context m_ctx;
@@ -32,9 +35,11 @@ private:
     void addDevice(rs2::device& dev);
     void removeDevices(const rs2::event_information& info);
 
-    QString streamName(rs2::sensor &sensor, rs2::stream_profile &profile) const;
+    RSDevice* getDevice(const QString serial);
 
-    //QList<RSCamera*> m_camera_list;
+    QString streamPath(rs2::sensor &sensor, rs2::stream_profile &profile) const;
+
+    QList<RSDevice*> m_device_list;
 
 signals:
     void cameraConnected(const QString &serialNumber);

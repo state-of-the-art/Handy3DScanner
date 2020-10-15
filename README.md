@@ -55,11 +55,12 @@ Also there will be settings, skeletal animation and other stuff.
 
 ### Features
 
-* Easy capture from Intel Realsense D415/D435
-* Full available camera resolution (D415 1280x720 points)
-* Preview of the captured point clouds (pc)
-* Save captured pc in PCD format and export scene to glTF 2.0
-* ARCore-based camera positioning
+* Easy pointcloud capture interface
+* Pointcloud preview and edit
+* Support for RealSense library
+* Support for ARCore library
+* Save & load in PCD format
+* Export to glTFv2 with Draco compression
 
 ### Example data
 

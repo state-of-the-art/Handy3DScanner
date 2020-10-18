@@ -9,7 +9,7 @@ VideoPlayer::VideoPlayer()
     , m_stream(nullptr)
 {}
 
-void VideoPlayer::setStream(QObject *plugin, QString stream_path)
+void VideoPlayer::setStream(QObject *plugin, QStringList stream_path)
 {
     VideoSourceInterface *plugin_if = qobject_cast<VideoSourceInterface*>(plugin);
     if( !plugin_if ) {
@@ -29,7 +29,7 @@ void VideoPlayer::setStream(QObject *plugin, QString stream_path)
         return;
     }
 
-    if( m_stream && qobject_cast<VideoSourceStream*>(m_stream)->name() == stream_if->name() ) {
+    if( m_stream && qobject_cast<VideoSourceStream*>(m_stream)->path() == stream_if->path() ) {
         qCDebug(videoplayer) << __func__ << "Do not reconnect the same stream";
         return;
     }

@@ -56,26 +56,24 @@ RSDevice::~RSDevice()
     deinit();
 }
 
-VideoSourceStreamObject* RSDevice::connectStream(const QString name)
+VideoSourceStreamObject* RSDevice::connectStream(const QStringList path)
 {
     qCDebug(rsdevice) << __func__ << "Setting stream parameters";
 
     for( VideoSourceStreamObject* stream : m_video_streams ) {
-        if( stream->name() == name )
+        if( stream->path() == path )
             return stream;
     }
 
-    //QString usb_version = m_rsmanager.getDeviceInfo(serialNumber, RS2_CAMERA_INFO_USB_TYPE_DESCRIPTOR);
-    //setConnectionType("USB "+usb_version);
-    //qCDebug(rsdevice) << "USB version:" << usb_version;
-
-    rs2::stream_profile sp = m_rsmanager->getStreamProfile(m_serial_number, name);
+    rs2::stream_profile sp = m_rsmanager->getStreamProfile(path);
     auto vp = sp.as<rs2::video_stream_profile>();
     m_config.enable_stream(sp.stream_type(), vp.width(), vp.height(), sp.format(), sp.fps());
-    VideoSourceStreamObject *stream =
-            new VideoSourceStreamObject(name, m_serial_number,
-                                        m_rsmanager->getDeviceInfo(m_serial_number, RS2_CAMERA_INFO_NAME),
-                                        sp.stream_type());
+    QStringList description;
+    description << QString("%1 (USB:%2 FW:%3)")
+            .arg(m_rsmanager->getDeviceInfo(m_serial_number, RS2_CAMERA_INFO_NAME))
+            .arg(m_rsmanager->getDeviceInfo(m_serial_number, RS2_CAMERA_INFO_USB_TYPE_DESCRIPTOR))
+            .arg(m_rsmanager->getDeviceInfo(m_serial_number, RS2_CAMERA_INFO_FIRMWARE_VERSION));
+    VideoSourceStreamObject *stream = new VideoSourceStreamObject(path, description, sp.stream_type());
     m_video_streams.append(stream);
 
     start();

@@ -25,8 +25,8 @@ public:
     bool configure() override;
 
     // VideoSourceInterface
-    Q_INVOKABLE QStringList getAvailableStreams() const override;
-    Q_INVOKABLE VideoSourceStreamObject* getVideoStream(const QString path) override;
+    Q_INVOKABLE QVariantMap /*<QString,QString>*/ getAvailableStreams(QStringList path) const override;
+    Q_INVOKABLE VideoSourceStreamObject* getVideoStream(const QStringList path) override;
 
     // PointCloudSourceInterface
     uint8_t* getPCData() const override;

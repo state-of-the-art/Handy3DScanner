@@ -10,24 +10,21 @@
 class VideoSourceStream
 {
 public:
-    VideoSourceStream(QString name, QString device_id, QString device_name)
-        : m_name(name)
-        , m_device_id(device_id)
-        , m_device_name(device_name) {};
+    VideoSourceStream(QStringList path, QStringList description)
+        : m_path(path)
+        , m_description(description) {};
     virtual ~VideoSourceStream(){}
 
-    virtual QString name() { return m_name; };
-    virtual QString deviceId() { return m_device_id; };
-    virtual QString deviceName() { return m_device_name; };
+    virtual QStringList path() { return m_path; };
+    virtual QStringList description() { return m_description; };
 
 signals:
     // Signal on getting the new image
     virtual void newStreamImage(const QImage &image) = 0;
 
 protected:
-    QString m_name;
-    QString m_device_id;
-    QString m_device_name;
+    QStringList m_path;
+    QStringList m_description;
 };
 
 Q_DECLARE_INTERFACE(VideoSourceStream, VideoSourceStream_iid)

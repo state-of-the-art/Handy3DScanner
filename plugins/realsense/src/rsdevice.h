@@ -20,7 +20,7 @@ public:
 
     const QString serialNumber() const { return m_serial_number; };
 
-    VideoSourceStreamObject* connectStream(const QString name);
+    VideoSourceStreamObject* connectStream(const QStringList path);
 
     bool getIsConnected() const { return m_isconnected; };
     bool getIsStreaming() const { return m_isstreaming; };

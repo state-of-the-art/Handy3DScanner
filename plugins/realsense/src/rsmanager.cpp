@@ -89,71 +89,108 @@ RSDevice* RSManager::getDevice(const QString serial)
     return device;
 }
 
-QString RSManager::streamPath(rs2::sensor &sensor, rs2::stream_profile &sp) const
+QMap<QString, QString> RSManager::getAvailableStreams(const QStringList path) const
 {
-    auto vp = sp.as<rs2::video_stream_profile>();
-    QString name = QString("%1->%2::%3->(%4x%5, %6, %7)")
-        .arg(sensor.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER))
-        .arg(sensor.get_info(RS2_CAMERA_INFO_NAME))
-        .arg(QString::fromStdString(sp.stream_name()))
-        .arg(vp ? vp.width() : -1)
-        .arg(vp ? vp.height() : -1)
-        .arg(rs2_format_to_string(sp.format()))
-        .arg(sp.fps());
-
-    return name;
-}
-
-QStringList RSManager::getAvailableStreams() const
-{
-    QStringList out;
+    QMap<QString, QString> out;
     for( auto dev : m_connected_devices ) {
+        QString dev_id = dev.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER);
         qCDebug(rsmanager) << __func__ << "Check device:" << dev.get_info(RS2_CAMERA_INFO_NAME);
-        /*rs2::config cfg;
-        cfg.enable_device(dev.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER));
-        rs2::pipeline pipeline;
-        auto profile = cfg.resolve(pipeline);
-        for( auto&& stream : profile.get_streams() )
-            out.append(streamName(stream));*/
+        if( path.length() == 0 ) {
+            out[dev_id] = QString("%1 (USB:%2 FW:%3)")
+                    .arg(dev.get_info(RS2_CAMERA_INFO_NAME))
+                    .arg(dev.get_info(RS2_CAMERA_INFO_USB_TYPE_DESCRIPTOR))
+                    .arg(dev.get_info(RS2_CAMERA_INFO_FIRMWARE_VERSION));
+            continue;
+        }
+        else if( path[0] != dev_id )
+            continue;
+
         for( auto sensor : dev.query_sensors() ) {
-            qCDebug(rsmanager) << __func__ << "  Check sensor:" << sensor.get_info(RS2_CAMERA_INFO_NAME);
-            auto profiles = sensor.get_stream_profiles();
-            for( auto profile : profiles ) {
-                out.append(streamPath(sensor, profile));
+            QString sensor_name = sensor.get_info(RS2_CAMERA_INFO_NAME);
+            qCDebug(rsmanager) << __func__ << "  Check sensor:" << sensor_name;
+            if( path.length() == 1 ) {
+                out[sensor_name] = sensor_name;
+                continue;
+            }
+            else if( path[1] != sensor_name )
+                continue;
+
+            for( auto sp : sensor.get_stream_profiles() ) {
+                QString stream_name = QString::fromStdString(sp.stream_name());
+                if( path.length() == 2 ) {
+                    out[stream_name] = stream_name;
+                    continue;
+                }
+                else if( path[2] != stream_name )
+                    continue;
+
+                QString stream_format = rs2_format_to_string(sp.format());
+                if( path.length() == 3 ) {
+                    out[stream_format] = stream_format;
+                    continue;
+                }
+                else if( path[3] != stream_format )
+                    continue;
+
+                QString stream_fps = QString::number(sp.fps());
+                if( path.length() == 4 ) {
+                    out[stream_fps] = stream_fps;
+                    continue;
+                }
+                else if( path[4] != stream_fps )
+                    continue;
+
+                auto vp = sp.as<rs2::video_stream_profile>();
+                QString stream_resolution = vp ? QString("%1x%2").arg(vp.width()).arg(vp.height()) : "not video";
+                if( path.length() == 5 ) {
+                    out[stream_resolution] = stream_resolution;
+                    continue;
+                }
+                return out;
             }
         }
     }
-    qCDebug(rsmanager) << __func__ << "Found " << out.length() << "profiles";
     return out;
 }
 
-VideoSourceStreamObject* RSManager::getVideoStream(const QString path)
+VideoSourceStreamObject* RSManager::getVideoStream(const QStringList path)
 {
     qCDebug(rsmanager) << __func__ << "Get video stream:" << path;
-    QStringList splitpath = path.split("->");
 
-    RSDevice *device = getDevice(splitpath[0]);
+    RSDevice *device = getDevice(path[0]);
 
-    QString name = QString("%1->%2").arg(splitpath[1]).arg(splitpath[2]);
-    return device->connectStream(name);
+    return device->connectStream(path);
 }
 
-rs2::stream_profile RSManager::getStreamProfile(const QString serial, const QString name)
+rs2::stream_profile RSManager::getStreamProfile(const QStringList path)
 {
+    if( path.length() != 6 ) {
+        qCWarning(rsmanager) << __func__ << "Required 6 items in the path:" << path;
+        return rs2::stream_profile();
+    }
+
     QMutexLocker locker(&m_mutex);
-    QHash<QString, rs2::device>::const_iterator it = m_connected_devices.find(serial);
+    QHash<QString, rs2::device>::const_iterator it = m_connected_devices.find(path[0]);
     if( it == m_connected_devices.end() ) {
-        qCWarning(rsmanager) << __func__ << "Unable to find connected device:" << serial;
+        qCWarning(rsmanager) << __func__ << "Unable to find connected device:" << path;
         return rs2::stream_profile();
     }
 
     rs2::device dev = it.value();
-    QString fullpath = QString("%1->%2").arg(serial).arg(name);
     for( auto sensor : dev.query_sensors() ) {
         auto profiles = sensor.get_stream_profiles();
-        for( auto profile : profiles ) {
-            if( streamPath(sensor, profile) == fullpath )
-                return profile;
+        for( auto sp : profiles ) {
+            QStringList profile_path;
+            profile_path << dev.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER);
+            profile_path << sensor.get_info(RS2_CAMERA_INFO_NAME);
+            profile_path << QString::fromStdString(sp.stream_name());
+            profile_path << rs2_format_to_string(sp.format());
+            profile_path << QString::number(sp.fps());
+            auto vp = sp.as<rs2::video_stream_profile>();
+            profile_path << (vp ? QString("%1x%2").arg(vp.width()).arg(vp.height()) : "not video");
+
+            if( profile_path == path )
+                return sp;
         }
     }
 

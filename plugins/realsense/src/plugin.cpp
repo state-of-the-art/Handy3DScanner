@@ -1,5 +1,6 @@
 #include "plugin.h"
 
+#include <QVariant>
 #include <QLoggingCategory>
 
 Q_LOGGING_CATEGORY(plugin, "RealSensePlugin")
@@ -165,13 +166,19 @@ bool RealSensePlugin::configure()
     return true;
 }
 
-QStringList RealSensePlugin::getAvailableStreams() const
+QVariantMap RealSensePlugin::getAvailableStreams(QStringList path) const
 {
     qCDebug(plugin) << __func__;
-    return m_rsmanager.getAvailableStreams();
+    QVariantMap out;
+
+    QMap<QString, QString> data = m_rsmanager.getAvailableStreams(path);
+    for( auto it = data.begin(); it != data.end(); ++it )
+        out[it.key()] = QVariant(it.value());
+
+    return out;
 }
 
-VideoSourceStreamObject *RealSensePlugin::getVideoStream(const QString path)
+VideoSourceStreamObject *RealSensePlugin::getVideoStream(const QStringList path)
 {
     return m_rsmanager.getVideoStream(path);
 }

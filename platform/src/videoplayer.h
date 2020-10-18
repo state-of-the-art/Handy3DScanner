@@ -16,7 +16,7 @@ class VideoPlayer
 public:
     VideoPlayer();
 
-    Q_INVOKABLE void setStream(/*VideoSourceInterface*/QObject* plugin, QString stream_path);
+    Q_INVOKABLE void setStream(/*VideoSourceInterface*/QObject* plugin, QStringList stream_path);
     Q_INVOKABLE void reset();
 
     void paint(QPainter *painter) override;

@@ -12,12 +12,6 @@ Item {
         color: "black"
         anchors.fill: parent
 
-        Text {
-            anchors.centerIn: parent
-            color: "#aaa"
-            text: qsTr("Click here to choose the stream")
-        }
-
         VideoPlayer {
             id: monitor
             anchors.fill: parent
@@ -46,21 +40,110 @@ Item {
         }
 
         Rectangle {
-            visible: cfg['UI.Capture.show_connection_type']
+            id: current_stream
             anchors.top: parent.top
             anchors.left: parent.left
             anchors.margins: 3
-            width: connection_text.width + 6
-            height: connection_text.height + 6
-            // TODO: Reenable functionality
-            //color: camera.isStreaming ? "#88008800" : "#88880000"
+            width: current_stream_text.width + 6
+            height: current_stream_text.height + 6
+            color: monitor.isStreaming ? "#88008800" : "#88880000"
             radius: 3
             Text {
-                id: connection_text
+                id: current_stream_text
                 anchors.centerIn: parent
                 color: "#fff"
-                // TODO: Reenable functionality
-                //text: camera.connectionType || "No camera connected"
+                text: monitor.currentStream || qsTr("Click here to choose the stream")
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                onPressed: streams_list.trigger()
+            }
+        }
+
+        ListView {
+            id: streams_list
+            visible: false
+            anchors {
+                top: current_stream.bottom
+                left: parent.left
+                right: parent.right
+                bottom: parent.bottom
+            }
+            width: parent.width
+            clip: true
+
+            function trigger() {
+                streams_list.visible = !streams_list.visible
+                if( streams_list.visible )
+                    streams_list.current_path = streams_list.current_path
+            }
+
+            property var current_path: []
+            onCurrent_pathChanged: {
+                var plugins_list = plugins.getInterfacePlugins("io.stateoftheart.handy3dscanner.plugins.VideoSourceInterface")
+                var formed_list = []
+
+                if( current_path.length > 0 )
+                    formed_list.push({id: qsTr("Go back"), description: ".."})
+
+                console.log("Update current path: " + JSON.stringify(current_path))
+
+                for( var plugin of plugins_list ) {
+                    var ret = plugin.getAvailableStreams(current_path)
+                    for( var k in ret )
+                        formed_list.push({id: k, description: ret[k]})
+                    // TODO: Not great if we have a number of plugins
+                    if( current_path.length > 0 && Object.keys(ret).length === 0 )
+                        monitor.setStream(plugin, current_path)
+                }
+
+                if( formed_list.length < 1 )
+                    formed_list.push({id: qsTr("There is no devices connected?"), description: null})
+
+                streams_list.model = formed_list
+            }
+
+            delegate: Item {
+                id: root_item
+                width: ListView.view.width
+                height: streams_list.height / 10
+
+                Rectangle {
+                    id: item
+                    anchors.fill: parent
+                    border.width: 1
+                    color: "#22ffffff"
+                    radius: 10
+                    clip: true
+
+                    Text {
+                        anchors.centerIn: parent
+                        color: "#fff"
+                        text: {
+                            var out_text = ""
+                            if( modelData.description && modelData.id !== modelData.description )
+                                out_text += modelData.description + ' - '
+                            return out_text + modelData.id
+                        }
+                    }
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: {
+                        var path = streams_list.current_path
+                        if( modelData.description === null )
+                            return
+                        if( modelData.description === '..' ) {
+                            path.pop()
+                            streams_list.current_path = path
+                            return
+                        }
+                        path.push(modelData.id)
+                        streams_list.current_path = path
+                    }
+                }
             }
         }
 
@@ -131,22 +214,6 @@ Item {
             anchors.bottom: parent.bottom
             width: parent.width/10
             height: width
-        }
-
-        MouseArea {
-            anchors.fill: parent
-            onPressed: {
-                var list = plugins.getInterfacePlugins("io.stateoftheart.handy3dscanner.plugins.VideoSourceInterface")
-                for( var plugin of list ) {
-                    var streams = plugin.getAvailableStreams()
-                    console.log(plugin.name() + " - found " + streams.length + " streams")
-                    /*for( var name of streams ) {
-                        console.log(name)
-                    }*/
-                    //monitor.setStream(plugin, /*name*/"821212061876->Stereo Module::Depth->(1280x720, Z16, 30)")
-                    monitor.setStream(plugin, /*name*/"821212061876->RGB Camera::Color->(1920x1080, RGB8, 30)")
-                }
-            }
         }
     }
 

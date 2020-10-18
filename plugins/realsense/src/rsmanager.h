@@ -7,6 +7,8 @@
 #include <QString>
 #include <QMutex>
 #include <QHash>
+#include <QVariant>
+#include <QMap>
 
 #include "VideoSource/VideoSourceStream.h"
 #include "rsdevice.h"
@@ -23,9 +25,9 @@ public:
 
     QString getDeviceInfo(QString serial, rs2_camera_info field);
 
-    QStringList getAvailableStreams() const;
-    VideoSourceStreamObject* getVideoStream(const QString path);
-    rs2::stream_profile getStreamProfile(const QString serial, const QString name);
+    QMap<QString, QString> getAvailableStreams(const QStringList path) const;
+    VideoSourceStreamObject* getVideoStream(const QStringList path);
+    rs2::stream_profile getStreamProfile(const QStringList path);
 
 private:
     rs2::context m_ctx;
@@ -36,8 +38,6 @@ private:
     void removeDevices(const rs2::event_information& info);
 
     RSDevice* getDevice(const QString serial);
-
-    QString streamPath(rs2::sensor &sensor, rs2::stream_profile &profile) const;
 
     QList<RSDevice*> m_device_list;
 

@@ -17,7 +17,9 @@ Q_LOGGING_CATEGORY(rsdeviceworker, "RealSensePlugin::RSDeviceWorker")
 #include "rsdevice.h"
 
 RSDeviceWorker::RSDeviceWorker(rs2::pipeline *pipe, rs2::frame_queue *queue, RSDevice *device)
-    : m_mutex()
+    : m_stopped(true)
+    , m_make_shot(false)
+    , m_mutex()
     , m_pipe(pipe)
     , m_queue(queue)
     , m_device(device)
@@ -45,6 +47,7 @@ void RSDeviceWorker::doWork()
 {
     rs2::colorizer color_map;
     m_stopped = false;
+    m_device->setIsStreaming(true);
 
     m_use_disparity_filter = true;//Settings::I()->value("Camera.Streams.Depth.use_disparity_filter").toBool();
     m_use_spatial_filter = true;//Settings::I()->value("Camera.Streams.Depth.use_spatial_filter").toBool();
@@ -71,6 +74,8 @@ void RSDeviceWorker::doWork()
     QElapsedTimer fpt_timer; // Frame processing time
     qint64 fpt = 0;
 
+    rs2::frameset frames;
+
     try {
         frame_timer.start();
         while( true ) {
@@ -92,20 +97,23 @@ void RSDeviceWorker::doWork()
             }
 
             fwt_timer.restart();
-            rs2::frameset frames = m_pipe->wait_for_frames(); // Wait for next set of frames from the camera
+            if( !m_pipe->try_wait_for_frames(&frames) ) { // Wait for next set of frames from the camera
+                qCDebug(rsdeviceworker) << "No frames received from the pipeline";
+                continue;
+            }
+            if( frames.size() == 0 )
+                continue;
             fwt += fwt_timer.nsecsElapsed();
 
             frames_count++;
 
             fpt_timer.restart();
-            frames.keep();
+            //frames.keep();
 
             {
                 QMutexLocker locker(&m_mutex);
-                if( m_stopped ) {
-                    emit stopped();
+                if( m_stopped )
                     break;
-                }
             }
 
             auto enabled_streams = m_device->getVideoStreams();
@@ -130,25 +138,21 @@ void RSDeviceWorker::doWork()
                         filtered = disparity_to_depth.process(filtered);
 
                     emit stream->newStreamImage(frameToQImage(color_map.colorize(filtered)));
-                    break;
                 } else if( stream->rs2_stream_type == RS2_STREAM_COLOR ) {
                     rs2::video_frame frame = frames.get_color_frame();
                     if( ! frame )
                         continue;
                     emit stream->newStreamImage(frameToQImage(frame));
-                    break;
                 } else if( stream->rs2_stream_type == RS2_STREAM_INFRARED ) {
                     rs2::video_frame frame = frames.get_infrared_frame();
                     if( ! frame )
                         continue;
                     emit stream->newStreamImage(frameToQImage(frame));
-                    break;
                 } else if( stream->rs2_stream_type == RS2_STREAM_FISHEYE ) {
                     rs2::video_frame frame = frames.get_fisheye_frame();
                     if( ! frame )
                         continue;
                     emit stream->newStreamImage(frameToQImage(frame));
-                    break;
                 } else
                     qCWarning(rsdeviceworker) << "Unable to process stream" << rs2_stream_to_string((rs2_stream)stream->rs2_stream_type);
             }
@@ -178,11 +182,12 @@ void RSDeviceWorker::doWork()
         }
     } catch( const rs2::error & e ) {
         emit errorOccurred(e.what());
-        emit stopped();
     } catch( const std::exception& e ) {
         emit errorOccurred(e.what());
-        emit stopped();
     }
+
+    m_device->setIsStreaming(false);
+    emit stopped();
 }
 
 /*PointCloud* RSDeviceWorker::toPointCloud(rs2::points points, rs2::depth_frame depth_frame, rs2::video_frame texture, size_t width)

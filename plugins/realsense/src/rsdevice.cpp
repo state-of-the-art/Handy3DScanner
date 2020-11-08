@@ -20,6 +20,9 @@ RSDevice::RSDevice(RSManager *rsmanager, const QString serial_number)
     , m_pipe(nullptr)
     , m_queue(FRAME_QUEUE_SIZE)
     , m_generator(m_pipe, &m_queue, this)
+    , m_isconnected(false)
+    , m_isstreaming(false)
+    , m_isstarted(false)
 {
     qCDebug(rsdevice) << "Create new" << m_serial_number;
     init();
@@ -45,6 +48,7 @@ RSDevice::RSDevice(RSManager *rsmanager, const QString serial_number)
     connect(&m_generator, &RSDeviceWorker::streamFPT, this, &RSDevice::setStreamFPT);*/
 
     m_generator_thread.start();
+
     qCDebug(rsdevice) << "Created" << m_serial_number;
 }
 
@@ -58,16 +62,31 @@ RSDevice::~RSDevice()
 
 VideoSourceStreamObject* RSDevice::connectStream(const QStringList path)
 {
-    qCDebug(rsdevice) << __func__ << "Setting stream parameters";
+    qCDebug(rsdevice) << __func__ << "Setting stream parameters for path" << path;
 
+    // Check if stream is already enabled
     for( VideoSourceStreamObject* stream : m_video_streams ) {
         if( stream->path() == path )
             return stream;
     }
 
     rs2::stream_profile sp = m_rsmanager->getStreamProfile(path);
+
+    // Check if there is a stream from the same sensor
+    // rs2 can't stream multiple formats from the same sensor
+    for( VideoSourceStreamObject* stream : m_video_streams ) {
+        if( stream->rs2_stream_type == sp.stream_type() ) {
+            m_video_streams.removeOne(stream);
+            // TODO: Not quite right to just delete the object without mutex
+            // because the others could use it... Use shared_ptr here for automatic destroy
+            //delete stream;
+            break;
+        }
+    }
+
     auto vp = sp.as<rs2::video_stream_profile>();
     m_config.enable_stream(sp.stream_type(), vp.width(), vp.height(), sp.format(), sp.fps());
+
     QStringList description;
     description << QString("%1 (USB:%2 FW:%3)")
             .arg(m_rsmanager->getDeviceInfo(m_serial_number, RS2_CAMERA_INFO_NAME))
@@ -76,49 +95,87 @@ VideoSourceStreamObject* RSDevice::connectStream(const QStringList path)
     VideoSourceStreamObject *stream = new VideoSourceStreamObject(path, description, sp.stream_type());
     m_video_streams.append(stream);
 
-    start();
+    restart();
 
     return stream;
 }
 
 void RSDevice::start()
 {
-    if( getIsStreaming() )
+    if( getIsStarted() )
         return;
 
-    qCDebug(rsdevice) << "start streaming" << m_serial_number;
+    // Restart only once
+    disconnect(this, &RSDevice::stopped, this, &RSDevice::start);
 
-    if( m_pipe != nullptr ) {
-        qCDebug(rsdevice) << "start pipe";
+    qCDebug(rsdevice) << "Start streaming" << m_serial_number;
+
+    if( m_pipe == nullptr ) {
+        m_pipe = new rs2::pipeline();
         try {
-            m_profile = m_pipe->start(m_config);
-            setIsStreaming(true);
-            emit started();
+            m_pipe->start(m_config);
+            m_generator.setPipeline(m_pipe);
+            setIsStarted(true);
         } catch( rs2::error e ) {
+            // TODO: when there is not enough bandwidth
             qCWarning(rsdevice) << "Unable to start pipe with the current configuration:" << e.what();
             qCWarning(rsdevice) << "Disabling the color stream and retry";
             //m_config.disable_stream(RS2_STREAM_COLOR);
             //m_profile = m_pipe->start(m_config);
         }
-    }
+    } else
+        qCWarning(rsdevice) << "The pipe is already here which should not happen for" << m_serial_number;
+}
+
+void RSDevice::restart()
+{
+    connect(this, &RSDevice::stopped, this, &RSDevice::start);
+    stop();
+    start();
 }
 
 void RSDevice::stop()
 {
-    if( !getIsStreaming() )
+    if( !getIsStarted() )
         return;
 
     qCDebug(rsdevice) << "Stop generator for" << m_serial_number;
     m_generator.stop();
+
 }
 
 void RSDevice::_stop()
 {
     if( m_pipe != nullptr ) {
-        qCDebug(rsdevice) << "stop pipe";
+        qCDebug(rsdevice) << "Stop pipe for" << m_serial_number;
         m_pipe->stop();
-        qCDebug(rsdevice) << "after pipe stop";
-        setIsStreaming(false);
+        delete m_pipe;
+        m_pipe = nullptr;
+        setIsStarted(false);
+    }
+}
+
+void RSDevice::setIsConnected(const bool val)
+{
+    if( m_isconnected != val ) {
+        m_isconnected = val;
+        emit m_isconnected ? connected() : disconnected();
+    }
+}
+
+void RSDevice::setIsStreaming(const bool val)
+{
+    if( m_isstreaming != val ) {
+        m_isstreaming = val;
+        emit m_isstreaming ? streaming() : notstreaming();
+    }
+}
+
+void RSDevice::setIsStarted(const bool val)
+{
+    if( m_isstarted != val ) {
+        m_isstarted = val;
+        emit m_isstarted ? started() : stopped();
     }
 }
 
@@ -150,10 +207,6 @@ void RSDevice::makeShot()
 void RSDevice::init()
 {
     qCDebug(rsdevice) << "Init device" << m_serial_number;
-
-    if( m_pipe == nullptr )
-        m_pipe = new rs2::pipeline();
-    m_generator.setPipeline(m_pipe);
 
     m_config.enable_device(m_serial_number.toStdString());
     m_config.disable_all_streams();

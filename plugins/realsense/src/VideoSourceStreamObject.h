@@ -14,5 +14,8 @@ public:
 
 signals:
     void newStreamImage(const QImage &image);
+
+private slots:
+    void updateLastFrameTime();
 };
 #endif // VIDEOSOURCESTREAMOBJECT_H

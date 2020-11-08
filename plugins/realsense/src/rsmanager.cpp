@@ -86,6 +86,7 @@ RSDevice* RSManager::getDevice(const QString serial)
     }
 
     RSDevice* device = new RSDevice(this, serial);
+    m_device_list.append(device);
     return device;
 }
 

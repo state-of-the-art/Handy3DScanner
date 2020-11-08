@@ -110,11 +110,9 @@ void RSDevice::start()
 
     qCDebug(rsdevice) << "Start streaming" << m_serial_number;
 
-    if( m_pipe == nullptr ) {
-        m_pipe = new rs2::pipeline();
+    if( m_pipe != nullptr ) {
         try {
             m_pipe->start(m_config);
-            m_generator.setPipeline(m_pipe);
             setIsStarted(true);
         } catch( rs2::error e ) {
             // TODO: when there is not enough bandwidth
@@ -149,8 +147,6 @@ void RSDevice::_stop()
     if( m_pipe != nullptr ) {
         qCDebug(rsdevice) << "Stop pipe for" << m_serial_number;
         m_pipe->stop();
-        delete m_pipe;
-        m_pipe = nullptr;
         setIsStarted(false);
     }
 }
@@ -207,6 +203,9 @@ void RSDevice::makeShot()
 void RSDevice::init()
 {
     qCDebug(rsdevice) << "Init device" << m_serial_number;
+
+    m_pipe = new rs2::pipeline();
+    m_generator.setPipeline(m_pipe);
 
     m_config.enable_device(m_serial_number.toStdString());
     m_config.disable_all_streams();

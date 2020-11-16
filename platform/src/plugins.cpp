@@ -43,13 +43,24 @@ QList<QLatin1String> Plugins::listInterfaces(const QString &name)
     return m_plugins[name].keys();
 }
 
-QList<QObject*> Plugins::getInterfacePlugins(const QString &name)
+QList<QObject*> Plugins::getInterfacePlugins(const QString &if_name)
 {
-    QLatin1String iid = QLatin1String((name.toLatin1()));
+    QLatin1String iid = QLatin1String((if_name.toLatin1()));
     if( m_plugins_active.contains(iid) )
         return m_plugins_active[iid];
     else
         return QList<QObject*>();
+}
+
+QObject* Plugins::getPlugin(const QString &if_name, const QString &name)
+{
+    auto plugins = getInterfacePlugins(if_name);
+    for( QObject* plugin : plugins ) {
+        if( qobject_cast<PluginInterface *>(plugin)->name() == name )
+            return plugin;
+    }
+
+    return nullptr;
 }
 
 void Plugins::settingActivePlugin(const QString &key, const QString &name)

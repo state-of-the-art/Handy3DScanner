@@ -285,9 +285,17 @@ QImage RSDeviceWorker::frameToQImage(const rs2::frame& f)
     switch( f.get_profile().format() ) {
     case( RS2_FORMAT_RGB8 ):
         return QImage(reinterpret_cast<const uchar *>(f.get_data()), w, h, QImage::Format_RGB888);
+    case( RS2_FORMAT_RGBA8 ):
+        return QImage(reinterpret_cast<const uchar *>(f.get_data()), w, h, QImage::Format_RGBA8888);
+    case( RS2_FORMAT_BGR8 ):
+        return QImage(reinterpret_cast<const uchar *>(f.get_data()), w, h, QImage::Format_BGR888);
     case( RS2_FORMAT_Z16 ):
+        // Use Format_Grayscale8 since we translating it by color_map.colorize()
         return QImage(reinterpret_cast<const uchar *>(f.get_data()), w, h, QImage::Format_Grayscale8);
     case( RS2_FORMAT_Y16 ):
+        // TODO: Fix the incorrect interpretation (part of the image & lines)
+        return QImage(reinterpret_cast<const uchar *>(f.get_data()), w, h, QImage::Format_Grayscale16);
+    case( RS2_FORMAT_Y8 ):
         return QImage(reinterpret_cast<const uchar *>(f.get_data()), w, h, QImage::Format_Grayscale8);
     default:
         throw std::runtime_error("Frame format is not supported yet!");

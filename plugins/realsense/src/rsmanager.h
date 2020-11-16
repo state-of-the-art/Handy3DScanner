@@ -25,7 +25,7 @@ public:
 
     QString getDeviceInfo(QString serial, rs2_camera_info field);
 
-    QMap<QString, QString> getAvailableStreams(const QStringList path) const;
+    QMap<QString, QVariantMap> getAvailableStreams() const;
     VideoSourceStreamObject* getVideoStream(const QStringList path);
     rs2::stream_profile getStreamProfile(const QStringList path);
 

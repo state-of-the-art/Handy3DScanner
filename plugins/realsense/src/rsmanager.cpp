@@ -90,66 +90,83 @@ RSDevice* RSManager::getDevice(const QString serial)
     return device;
 }
 
-QMap<QString, QString> RSManager::getAvailableStreams(const QStringList path) const
+QMap<QString, QVariantMap> RSManager::getAvailableStreams() const
 {
-    QMap<QString, QString> out;
+    QMap<QString, QVariantMap> out;
     for( auto dev : m_connected_devices ) {
         QString dev_id = dev.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER);
-        qCDebug(rsmanager) << __func__ << "Check device:" << dev.get_info(RS2_CAMERA_INFO_NAME);
-        if( path.length() == 0 ) {
-            out[dev_id] = QString("%1 (USB:%2 FW:%3)")
-                    .arg(dev.get_info(RS2_CAMERA_INFO_NAME))
-                    .arg(dev.get_info(RS2_CAMERA_INFO_USB_TYPE_DESCRIPTOR))
-                    .arg(dev.get_info(RS2_CAMERA_INFO_FIRMWARE_VERSION));
-            continue;
-        }
-        else if( path[0] != dev_id )
-            continue;
+        QVariantMap device;
+        device["name"] = QString(dev.get_info(RS2_CAMERA_INFO_NAME));
+        device["description"] = QString("USB:%2 FW:%3")
+                .arg(dev.get_info(RS2_CAMERA_INFO_USB_TYPE_DESCRIPTOR))
+                .arg(dev.get_info(RS2_CAMERA_INFO_FIRMWARE_VERSION));
+        qCDebug(rsmanager) << __func__ << "Found device:" << device["name"] << device["description"];
 
-        for( auto sensor : dev.query_sensors() ) {
-            QString sensor_name = sensor.get_info(RS2_CAMERA_INFO_NAME);
-            qCDebug(rsmanager) << __func__ << "  Check sensor:" << sensor_name;
-            if( path.length() == 1 ) {
-                out[sensor_name] = sensor_name;
-                continue;
-            }
-            else if( path[1] != sensor_name )
-                continue;
+        QVariantMap device_childs;
+        for( auto sens : dev.query_sensors() ) {
+            QString sensor_name = sens.get_info(RS2_CAMERA_INFO_NAME);
+            qCDebug(rsmanager) << __func__ << "  Found sensor:" << sensor_name;
+            QVariantMap sensor;
 
-            for( auto sp : sensor.get_stream_profiles() ) {
+            QVariantMap sensor_childs;
+            for( auto sp : sens.get_stream_profiles() ) {
                 QString stream_name = QString::fromStdString(sp.stream_name());
-                if( path.length() == 2 ) {
-                    out[stream_name] = stream_name;
-                    continue;
-                }
-                else if( path[2] != stream_name )
-                    continue;
 
-                QString stream_format = rs2_format_to_string(sp.format());
-                if( path.length() == 3 ) {
-                    out[stream_format] = stream_format;
-                    continue;
+                QVariantMap stream;
+                QVariantMap stream_childs;
+                if( sensor_childs.contains(stream_name) ) {
+                    stream = sensor_childs[stream_name].toMap();
+                    stream_childs = stream["childrens"].toMap();
                 }
-                else if( path[3] != stream_format )
-                    continue;
 
-                QString stream_fps = QString::number(sp.fps());
-                if( path.length() == 4 ) {
-                    out[stream_fps] = stream_fps;
-                    continue;
-                }
-                else if( path[4] != stream_fps )
-                    continue;
+                {
+                    QString stream_format = rs2_format_to_string(sp.format());
 
-                auto vp = sp.as<rs2::video_stream_profile>();
-                QString stream_resolution = vp ? QString("%1x%2").arg(vp.width()).arg(vp.height()) : "not video";
-                if( path.length() == 5 ) {
-                    out[stream_resolution] = stream_resolution;
-                    continue;
+                    QVariantMap format;
+                    QVariantMap format_childs;
+                    if( stream_childs.contains(stream_format) ) {
+                        format = stream_childs[stream_format].toMap();
+                        format_childs = format["childrens"].toMap();
+                    }
+
+                    if( sp.format() != RS2_FORMAT_RGB8 &&
+                        sp.format() != RS2_FORMAT_RGBA8 &&
+                        sp.format() != RS2_FORMAT_BGR8 &&
+                        sp.format() != RS2_FORMAT_Z16 &&
+                        sp.format() != RS2_FORMAT_Y16 &&
+                        sp.format() != RS2_FORMAT_Y8 ) {
+                        format["supported"] = false; // Not supported by the plugin
+                    }
+                    {
+                        QString stream_fps = QString::number(sp.fps());
+
+                        QVariantMap fps;
+                        QVariantMap fps_childs;
+                        if( format_childs.contains(stream_fps) ) {
+                            fps = format_childs[stream_fps].toMap();
+                            fps_childs = fps["childrens"].toMap();
+                        }
+                        {
+                            auto vp = sp.as<rs2::video_stream_profile>();
+                            QString stream_resolution = vp ? QString("%1x%2").arg(vp.width()).arg(vp.height()) : "not video";
+
+                            QVariantMap resolution;
+                            fps_childs[stream_resolution] = resolution;
+                        }
+                        fps["childrens"] = fps_childs;
+                        format_childs[stream_fps] = fps;
+                    }
+                    format["childrens"] = format_childs;
+                    stream_childs[stream_format] = format;
                 }
-                return out;
+                stream["childrens"] = stream_childs;
+                sensor_childs[stream_name] = stream;
             }
+            sensor["childrens"] = sensor_childs;
+            device_childs[sensor_name] = sensor;
         }
+        device["childrens"] = device_childs;
+        out[dev_id] = device;
     }
     return out;
 }

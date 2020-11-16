@@ -73,38 +73,70 @@ Item {
             width: parent.width
             clip: true
 
+            property var current_path: []
+            property var plugin_streams_tree
+
             function trigger() {
                 streams_list.visible = !streams_list.visible
                 if( streams_list.visible )
-                    streams_list.current_path = streams_list.current_path
+                    streams_list.current_path = streams_list.current_path // to trigger the path changed
             }
 
-            property var current_path: []
             onCurrent_pathChanged: {
-                var plugins_list = plugins.getInterfacePlugins("io.stateoftheart.handy3dscanner.plugins.VideoSourceInterface")
                 var formed_list = []
 
                 if( current_path.length > 0 )
-                    formed_list.push({id: qsTr("Go back"), description: ".."})
+                    formed_list.push({ id: "..", description: qsTr("Go up") })
 
                 console.log("Update current path: " + JSON.stringify(current_path))
 
-                for( var plugin of plugins_list ) {
-                    var ret = plugin.getAvailableStreams(current_path)
-                    for( var k in ret )
-                        formed_list.push({id: k, description: ret[k]})
-                    // TODO: Not great if we have a number of plugins
-                    if( current_path.length > 0 && Object.keys(ret).length === 0 )
-                        monitor.setStream(plugin, current_path)
+                // Finding the destination
+                var dest = { "childrens": plugin_streams_tree } // To simplify the logic
+                for( var key of current_path ) {
+                    dest = dest["childrens"][key]
+
+                    if( dest === undefined ) {
+                        app.error("Unable to locate path destination: " + key)
+                        current_path = []
+                        return
+                    }
+
+                    // Dest has no childrens - so it's the path end and we can use it as stream path
+                    if( dest["childrens"] === undefined ) {
+                        var plugin = plugins.getPlugin("io.stateoftheart.handy3dscanner.plugins.VideoSourceInterface", current_path[0])
+                        // TODO: check nullptr here
+                        if( plugin ) {
+                            monitor.setStream(plugin, current_path.slice(1))
+                            trigger()
+                        } else
+                            app.error("Unable to find the required plugin: " + current_path[0])
+                        current_path = []
+                        return
+                    }
                 }
 
-                if( formed_list.length < 1 )
-                    formed_list.push({id: qsTr("There is no devices connected?"), description: null})
+                if( current_path.length == 0 ) {
+                    // Update the device tree
+                    var plugins_list = plugins.getInterfacePlugins("io.stateoftheart.handy3dscanner.plugins.VideoSourceInterface")
+
+                    plugin_streams_tree = {}
+                    dest = { "childrens": plugin_streams_tree } // TODO: Remove duplication
+                    for( var plug of plugins_list )
+                        plugin_streams_tree[plug.name()] = { "childrens": plug.getAvailableStreams() }
+                }
+
+                // Walking through destintation and forming the display list
+                for( var id in dest["childrens"] )
+                    formed_list.push(Object.assign({id: id}, dest["childrens"][id]))
+
+                if( formed_list.length === 0 || (current_path.length > 0 && formed_list.length === 1) )
+                    formed_list.push({ name: qsTr("Nothing to display"), description: qsTr("There is no devices connected?") })
 
                 streams_list.model = formed_list
             }
 
             delegate: Item {
+                // WARNING: Do not modify modelData.childrens
                 id: root_item
                 width: ListView.view.width
                 height: streams_list.height / 10
@@ -113,18 +145,20 @@ Item {
                     id: item
                     anchors.fill: parent
                     border.width: 1
-                    color: "#22ffffff"
+                    color: "#88ffffff"
                     radius: 10
                     clip: true
 
                     Text {
-                        anchors.centerIn: parent
-                        color: "#fff"
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.left: parent.left
+                        anchors.leftMargin: 5
+                        color: "#000"
                         text: {
-                            var out_text = ""
-                            if( modelData.description && modelData.id !== modelData.description )
-                                out_text += modelData.description + ' - '
-                            return out_text + modelData.id
+                            var out_text = modelData.name || modelData.id
+                            if( modelData.description )
+                                out_text += " (" + modelData.description + ")"
+                            return out_text
                         }
                     }
                 }
@@ -133,9 +167,9 @@ Item {
                     anchors.fill: parent
                     onClicked: {
                         var path = streams_list.current_path
-                        if( modelData.description === null )
+                        if( modelData.id === undefined )
                             return
-                        if( modelData.description === '..' ) {
+                        if( modelData.id === '..' ) {
                             path.pop()
                             streams_list.current_path = path
                             return

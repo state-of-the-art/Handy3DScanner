@@ -19,7 +19,8 @@ public:
     QList<QLatin1String> listInterfaces(const QString &name);
 
     // Plugin functions
-    Q_INVOKABLE QList<QObject *> getInterfacePlugins(const QString &name);
+    Q_INVOKABLE QList<QObject*> getInterfacePlugins(const QString &name);
+    Q_INVOKABLE QObject* getPlugin(const QString &if_name, const QString &name);
 
     // Settings binding functions
     void settingActivePlugin(const QString &key, const QString &name);

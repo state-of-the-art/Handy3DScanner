@@ -166,14 +166,14 @@ bool RealSensePlugin::configure()
     return true;
 }
 
-QVariantMap RealSensePlugin::getAvailableStreams(QStringList path) const
+QVariantMap RealSensePlugin::getAvailableStreams() const
 {
     qCDebug(plugin) << __func__;
     QVariantMap out;
 
-    QMap<QString, QString> data = m_rsmanager.getAvailableStreams(path);
+    QMap<QString, QVariantMap> data = m_rsmanager.getAvailableStreams();
     for( auto it = data.begin(); it != data.end(); ++it )
-        out[it.key()] = QVariant(it.value());
+        out[it.key()] = it.value();
 
     return out;
 }

@@ -85,9 +85,6 @@ Item {
             onCurrent_pathChanged: {
                 var formed_list = []
 
-                if( current_path.length > 0 )
-                    formed_list.push({ id: "..", description: qsTr("Go up") })
-
                 console.log("Update current path: " + JSON.stringify(current_path))
 
                 // Finding the destination
@@ -129,8 +126,26 @@ Item {
                 for( var id in dest["childrens"] )
                     formed_list.push(Object.assign({id: id}, dest["childrens"][id]))
 
-                if( formed_list.length === 0 || (current_path.length > 0 && formed_list.length === 1) )
+                if( formed_list.length === 0 )
                     formed_list.push({ name: qsTr("Nothing to display"), description: qsTr("There is no devices connected?") })
+
+                formed_list.sort( function(a,b) {
+                    // Sort by supported
+                    if( a.supported !== b.supported )
+                        return a.supported === false ? 1 : -1
+
+                    // Natural sort by num 9999-1-A
+                    var num_a = parseInt(a.name || a.id)
+                    var num_b = parseInt(b.name || b.id)
+                    if( num_a !== NaN && num_b !== NaN )
+                        return num_a > num_b ? -1 : 1
+
+                    // Usual sort A-Z
+                    return (a.name || a.id) > (b.name || b.id) ? -1 : 1
+                } )
+
+                if( current_path.length > 0 )
+                    formed_list.unshift({ id: "..", description: qsTr("Go up") })
 
                 streams_list.model = formed_list
             }
@@ -153,11 +168,14 @@ Item {
                         anchors.verticalCenter: parent.verticalCenter
                         anchors.left: parent.left
                         anchors.leftMargin: 5
-                        color: "#000"
+                        color: modelData.supported !== false ? "#000" : "#333"
+                        font.bold: modelData.supported !== false
                         text: {
                             var out_text = modelData.name || modelData.id
                             if( modelData.description )
                                 out_text += " (" + modelData.description + ")"
+                            if( modelData.supported === false )
+                                out_text += " (not supported by the plugin)"
                             return out_text
                         }
                     }
@@ -165,6 +183,7 @@ Item {
 
                 MouseArea {
                     anchors.fill: parent
+                    enabled: modelData.supported !== false
                     onClicked: {
                         var path = streams_list.current_path
                         if( modelData.id === undefined )

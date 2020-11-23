@@ -23,6 +23,7 @@ public:
     const QString serialNumber() const { return m_serial_number; };
 
     VideoSourceStreamObject* connectStream(const QStringList path);
+    QList<VideoSourceStreamObject*> listStreams(const QStringList path = QStringList());
 
     bool getIsConnected() const { return m_isconnected; };
     bool getIsStarted() const { return m_isstarted; };

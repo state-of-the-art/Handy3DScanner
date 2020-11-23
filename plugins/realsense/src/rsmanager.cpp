@@ -90,10 +90,24 @@ RSDevice* RSManager::getDevice(const QString serial)
     return device;
 }
 
+void RSManager::setAvailableStreamsStatus(QVariantMap *map, VideoSourceInterface::stream_status status) const
+{
+    bool ok = false;
+    int curr_val = (*map)["status"].toUInt(&ok);
+    if( !ok )
+        curr_val = -1;
+    if( curr_val < status )
+        (*map)["status"] = status;
+}
+
 QMap<QString, QVariantMap> RSManager::getAvailableStreams() const
 {
     QMap<QString, QVariantMap> out;
+
+    QList<VideoSourceStreamObject*> active_streams = listVideoStreams();
+
     for( auto dev : m_connected_devices ) {
+        VideoSourceInterface::stream_status status;
         QString dev_id = dev.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER);
         QVariantMap device;
         device["name"] = QString(dev.get_info(RS2_CAMERA_INFO_NAME));
@@ -135,9 +149,8 @@ QMap<QString, QVariantMap> RSManager::getAvailableStreams() const
                         sp.format() != RS2_FORMAT_Z16 &&
                         sp.format() != RS2_FORMAT_Y16 &&
                         sp.format() != RS2_FORMAT_Y8 ) {
-                        format["supported"] = false; // Not supported by the plugin
-                    }
-                    {
+                        status = VideoSourceInterface::NOT_SUPPORTED; // Not supported by the plugin
+                    } else {
                         QString stream_fps = QString::number(sp.fps());
 
                         QVariantMap fps;
@@ -150,17 +163,35 @@ QMap<QString, QVariantMap> RSManager::getAvailableStreams() const
                             auto vp = sp.as<rs2::video_stream_profile>();
                             QString stream_resolution = vp ? QString("%1x%2").arg(vp.width()).arg(vp.height()) : "not video";
 
+                            QStringList path = QStringList() << dev_id << sensor_name << stream_name << stream_format << stream_fps << stream_resolution;
+                            status = VideoSourceInterface::EMPTY;
+                            for( auto stream_obj : active_streams ) {
+                                if( stream_obj->path() != path )
+                                    continue;
+                                if( stream_obj->isCapture() )
+                                    status = VideoSourceInterface::CAPTURE;
+                                else
+                                    status = VideoSourceInterface::ACTIVE;
+                            }
+
                             QVariantMap resolution;
+                            resolution["status"] = status;
                             fps_childs[stream_resolution] = resolution;
                         }
                         fps["childrens"] = fps_childs;
+                        setAvailableStreamsStatus(&fps, status);
                         format_childs[stream_fps] = fps;
                     }
                     format["childrens"] = format_childs;
+                    setAvailableStreamsStatus(&format, status);
                     stream_childs[stream_format] = format;
                 }
                 stream["childrens"] = stream_childs;
+                setAvailableStreamsStatus(&stream, status);
                 sensor_childs[stream_name] = stream;
+
+                setAvailableStreamsStatus(&sensor, status);
+                setAvailableStreamsStatus(&device, status);
             }
             sensor["childrens"] = sensor_childs;
             device_childs[sensor_name] = sensor;
@@ -178,6 +209,21 @@ VideoSourceStreamObject* RSManager::getVideoStream(const QStringList path)
     RSDevice *device = getDevice(path[0]);
 
     return device->connectStream(path);
+}
+
+QList<VideoSourceStreamObject*> RSManager::listVideoStreams(const QStringList path) const
+{
+    QList<VideoSourceStreamObject*> out;
+
+    for( RSDevice *dev : m_device_list ) {
+        if( !path.empty() && dev->serialNumber() != path[0] )
+            continue;
+
+        for( VideoSourceStreamObject* stream : dev->listStreams(path) )
+            out.append(stream);
+    }
+
+    return out;
 }
 
 rs2::stream_profile RSManager::getStreamProfile(const QStringList path)

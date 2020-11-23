@@ -14,6 +14,7 @@ public:
 
 signals:
     void newStreamImage(const QImage &image);
+    void captureChanged(const bool value);
 
 private slots:
     void updateLastFrameTime();

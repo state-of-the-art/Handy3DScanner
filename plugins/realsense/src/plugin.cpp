@@ -178,9 +178,17 @@ QVariantMap RealSensePlugin::getAvailableStreams() const
     return out;
 }
 
-VideoSourceStreamObject *RealSensePlugin::getVideoStream(const QStringList path)
+VideoSourceStreamObject* RealSensePlugin::getVideoStream(const QStringList path)
 {
     return m_rsmanager.getVideoStream(path);
+}
+
+QList<QObject*> RealSensePlugin::listVideoStreams(const QStringList path)
+{
+    QList<QObject*> out;
+    for( VideoSourceStreamObject* item : m_rsmanager.listVideoStreams(path) )
+        out.append(item);
+    return out;
 }
 
 uint8_t *RealSensePlugin::getPCData() const

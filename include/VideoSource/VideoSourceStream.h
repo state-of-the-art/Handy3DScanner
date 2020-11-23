@@ -13,6 +13,7 @@ public:
     VideoSourceStream(QStringList path, QStringList description)
         : m_path(path)
         , m_description(description)
+        , m_capture(false)
         , m_last_frame_time(0) {};
     virtual ~VideoSourceStream() {}
 
@@ -20,13 +21,19 @@ public:
     virtual QStringList description() { return m_description; };
     virtual qint64 lastFrameTime() { return m_last_frame_time; };
 
+    virtual bool isCapture() { return m_capture; };
+    virtual void setCapture(const bool value) { if( m_capture != value ) { m_capture = value; emit captureChanged(value); } };
+
 signals:
     // Signal on getting the new image
     virtual void newStreamImage(const QImage &image) = 0;
+    // Signal on change capture flag
+    virtual void captureChanged(const bool value) = 0;
 
 protected:
     QStringList m_path;
     QStringList m_description;
+    bool m_capture;
 
     qint64 m_last_frame_time;
 };

@@ -1,4 +1,5 @@
 #include "videoplayer.h"
+#include "plugins.h"
 
 #include <QDateTime>
 #include <QTimer>
@@ -22,14 +23,22 @@ VideoPlayer::~VideoPlayer()
     m_streaming_timer->stop();
 }
 
-void VideoPlayer::setStream(QObject *plugin, QStringList stream_path)
+void VideoPlayer::setStream(QStringList stream_path)
 {
+    qCDebug(videoplayer) << __func__ << "Set current stream:" << stream_path;
+    QObject *plugin = Plugins::I()->getPlugin(VideoSourceInterface_iid, stream_path.first());
+    if( !plugin ) {
+        qCWarning(videoplayer) << __func__ << "Not found the required plugin:" << stream_path.first();
+        return;
+    }
+
     VideoSourceInterface *plugin_if = qobject_cast<VideoSourceInterface*>(plugin);
     if( !plugin_if ) {
         qCWarning(videoplayer) << __func__ << "Incompatible plugin provided:" << plugin;
         return;
     }
 
+    stream_path.removeFirst();
     QObject *stream = plugin_if->getVideoStream(stream_path);
     if( !stream ) {
         qCWarning(videoplayer) << __func__ << "Null stream given by" << plugin << "for" << stream_path;

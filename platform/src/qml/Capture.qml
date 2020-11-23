@@ -100,13 +100,8 @@ Item {
 
                     // Dest has no childrens - so it's the path end and we can use it as stream path
                     if( dest["childrens"] === undefined ) {
-                        var plugin = plugins.getPlugin("io.stateoftheart.handy3dscanner.plugins.VideoSourceInterface", current_path[0])
-                        // TODO: check nullptr here
-                        if( plugin ) {
-                            monitor.setStream(plugin, current_path.slice(1))
-                            trigger()
-                        } else
-                            app.error("Unable to find the required plugin: " + current_path[0])
+                        monitor.setStream(current_path)
+                        trigger()
                         current_path = []
                         return
                     }
@@ -118,21 +113,22 @@ Item {
 
                     plugin_streams_tree = {}
                     dest = { "childrens": plugin_streams_tree } // TODO: Remove duplication
-                    for( var plug of plugins_list )
+                    for( var plug of plugins_list ) {
                         plugin_streams_tree[plug.name()] = { "childrens": plug.getAvailableStreams() }
+                    }
                 }
 
                 // Walking through destintation and forming the display list
                 for( var id in dest["childrens"] )
-                    formed_list.push(Object.assign({id: id}, dest["childrens"][id]))
+                    formed_list.push(Object.assign(dest["childrens"][id], {id: id}))
 
                 if( formed_list.length === 0 )
                     formed_list.push({ name: qsTr("Nothing to display"), description: qsTr("There is no devices connected?") })
 
                 formed_list.sort( function(a,b) {
-                    // Sort by supported
-                    if( a.supported !== b.supported )
-                        return a.supported === false ? 1 : -1
+                    // Sort by status
+                    if( a.status !== b.status )
+                        return b.status - a.status
 
                     // Natural sort by num 9999-1-A
                     var num_a = parseInt(a.name || a.id)
@@ -148,6 +144,7 @@ Item {
                     formed_list.unshift({ id: "..", description: qsTr("Go up") })
 
                 streams_list.model = formed_list
+                console.log("Update current path done")
             }
 
             delegate: Item {
@@ -164,18 +161,36 @@ Item {
                     radius: 10
                     clip: true
 
+                    Rectangle {
+                        id: stream_status
+                        height: width
+                        width: parent.height-(parent.height/4)
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.leftMargin: 5
+                        color: {
+                            switch(modelData.status) {
+                                case 0: return "#000"  // NOT_SUPPORTED
+                                case 2: return "#0a0"  // ACTIVE
+                                case 3: return "#a00"  // CAPTURE
+                                default: return "#000"
+                            }
+                        }
+                        radius: 100
+                        clip: true
+                    }
+
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
-                        anchors.left: parent.left
+                        anchors.left: stream_status.right
                         anchors.leftMargin: 5
-                        color: modelData.supported !== false ? "#000" : "#333"
-                        font.bold: modelData.supported !== false
+                        color: modelData.status !== 0 ? "#000" : "#333"
+                        font.bold: modelData.status !== 0
                         text: {
                             var out_text = modelData.name || modelData.id
                             if( modelData.description )
                                 out_text += " (" + modelData.description + ")"
-                            if( modelData.supported === false )
-                                out_text += " (not supported by the plugin)"
+                            if( modelData.status === 0 )
+                                out_text += " (not implemented by the plugin)"
                             return out_text
                         }
                     }
@@ -183,7 +198,7 @@ Item {
 
                 MouseArea {
                     anchors.fill: parent
-                    enabled: modelData.supported !== false
+                    enabled: modelData.status !== 0
                     onClicked: {
                         var path = streams_list.current_path
                         if( modelData.id === undefined )

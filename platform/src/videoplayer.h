@@ -21,7 +21,7 @@ public:
     VideoPlayer();
     ~VideoPlayer();
 
-    Q_INVOKABLE void setStream(/*VideoSourceInterface*/QObject* plugin, QStringList stream_path);
+    Q_INVOKABLE void setStream(QStringList stream_path);
     Q_INVOKABLE void reset();
 
     QString currentStream();

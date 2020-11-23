@@ -11,6 +11,7 @@
 #include <QMap>
 
 #include "VideoSource/VideoSourceStream.h"
+#include "plugins/VideoSourceInterface.h"
 #include "rsdevice.h"
 
 class RSManager
@@ -27,6 +28,7 @@ public:
 
     QMap<QString, QVariantMap> getAvailableStreams() const;
     VideoSourceStreamObject* getVideoStream(const QStringList path);
+    QList<VideoSourceStreamObject*> listVideoStreams(const QStringList path = QStringList()) const;
     rs2::stream_profile getStreamProfile(const QStringList path);
 
 private:
@@ -40,6 +42,8 @@ private:
     RSDevice* getDevice(const QString serial);
 
     QList<RSDevice*> m_device_list;
+
+    void setAvailableStreamsStatus(QVariantMap *map, VideoSourceInterface::stream_status status) const;
 
 signals:
     void cameraConnected(const QString &serialNumber);

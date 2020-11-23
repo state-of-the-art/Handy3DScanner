@@ -45,21 +45,26 @@ QList<QLatin1String> Plugins::listInterfaces(const QString &name)
 
 QList<QObject*> Plugins::getInterfacePlugins(const QString &if_name)
 {
-    QLatin1String iid = QLatin1String((if_name.toLatin1()));
+    QLatin1String iid = QLatin1String(if_name.toLatin1());
     if( m_plugins_active.contains(iid) )
         return m_plugins_active[iid];
-    else
+    else {
+        qCWarning(plugins) << "There is no plugins for" << if_name;
         return QList<QObject*>();
+    }
 }
 
 QObject* Plugins::getPlugin(const QString &if_name, const QString &name)
 {
-    auto plugins = getInterfacePlugins(if_name);
-    for( QObject* plugin : plugins ) {
-        if( qobject_cast<PluginInterface *>(plugin)->name() == name )
-            return plugin;
+    QLatin1String iid = QLatin1String(if_name.toLatin1());
+    if( m_plugins_active.contains(iid) ) {
+        for( QObject* plugin : m_plugins_active[iid] ) {
+            if( qobject_cast<PluginInterface *>(plugin)->name() == name )
+                return plugin;
+        }
     }
 
+    qCWarning(plugins) << __func__ << "There is no plugin found:" << if_name << name;
     return nullptr;
 }
 
@@ -156,12 +161,15 @@ void Plugins::refreshPluginsList()
         dir.setNameFilters(filters);
         QStringList libs = dir.entryList(QDir::Files);
         for( const QString &lib_name : libs ) {
-            QPluginLoader plugin_loader(dir.absoluteFilePath(lib_name));
+            QPluginLoader plugin_loader(dir.absoluteFilePath(lib_name), this);
             QObject *plugin = plugin_loader.instance();
             if( !plugin ) {
                 qCWarning(plugins) << "  unable to load plugin:" << lib_name;
                 continue;
             }
+
+            // Set parent of plugin to make sure it will not be destroyed accidentally
+            plugin->setParent(this);
 
             // Connecting the message signals
             connect(plugin, SIGNAL(appNotice(QString)), Application::I(), SLOT(notice(QString)));

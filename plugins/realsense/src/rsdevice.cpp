@@ -100,6 +100,19 @@ VideoSourceStreamObject* RSDevice::connectStream(const QStringList path)
     return stream;
 }
 
+QList<VideoSourceStreamObject*> RSDevice::listStreams(const QStringList path)
+{
+    QList<VideoSourceStreamObject*> out;
+
+    for( VideoSourceStreamObject* stream : m_video_streams ) {
+        if( !path.empty() && stream->path() == path )
+            continue;
+        out.append(stream);
+    }
+
+    return out;
+}
+
 void RSDevice::start()
 {
     if( getIsStarted() )

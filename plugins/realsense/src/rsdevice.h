@@ -2,11 +2,13 @@
 #define RSDEVICE_H
 
 #include <QThread>
+#include <QSharedPointer>
 
 #include <librealsense2/rs.hpp>
 
 #include "rsdeviceworker.h"
 #include "VideoSourceStreamObject.h"
+#include "PointCloudData.h"
 
 class RSManager;
 class RSDevice
@@ -22,6 +24,7 @@ public:
 
     const QString serialNumber() const { return m_serial_number; };
 
+    VideoSourceStreamObject* getStream(const QStringList path);
     VideoSourceStreamObject* connectStream(const QStringList path);
     QList<VideoSourceStreamObject*> listStreams(const QStringList path = QStringList());
 
@@ -38,6 +41,7 @@ public:
     void makeShot();
 
     QList<VideoSourceStreamObject*> getVideoStreams() { return m_video_streams; };
+    QSharedPointer<PointCloudData> getPointCloudData() { return m_pcdata; };
 
 signals:
     void connected();
@@ -46,6 +50,9 @@ signals:
     void notstreaming();
     void started();
     void stopped();
+
+public slots:
+    void onPointCloudData(PointCloudData *pcdata) { m_pcdata = QSharedPointer<PointCloudData>(pcdata); };
 
 protected:
     void setIsConnected(const bool val);
@@ -70,9 +77,7 @@ private:
 
     void _stop();
 
-    void onNewDepthImage(QImage image);
-    /*void onNewPointCloud(PointCloud* pc);
-    void onGeneratorErrorOccurred(const QString &error);*/
+    QSharedPointer<PointCloudData> m_pcdata;
 };
 
 #endif // RSDEVICE_H

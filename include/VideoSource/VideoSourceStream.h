@@ -30,6 +30,10 @@ signals:
     // Signal on change capture flag
     virtual void captureChanged(const bool value) = 0;
 
+    virtual void fps(qreal) = 0; // Frames per second
+    virtual void fwt(qreal) = 0; // Frame wait time
+    virtual void fpt(qreal) = 0; // Frame processing time
+
 protected:
     QStringList m_path;
     QStringList m_description;

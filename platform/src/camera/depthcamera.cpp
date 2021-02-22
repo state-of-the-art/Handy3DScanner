@@ -62,7 +62,7 @@ void DepthCamera::setIsScanning(bool isScanning)
 
 QQmlListProperty<PointCloud> DepthCamera::getPointClouds()
 {
-    return QQmlListProperty<PointCloud>(this, m_pointclouds);
+    return QQmlListProperty<PointCloud>(this, &m_pointclouds);
 }
 
 QString DepthCamera::getConnectionType() const

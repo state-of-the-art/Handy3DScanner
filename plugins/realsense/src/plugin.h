@@ -30,7 +30,7 @@ public:
     Q_INVOKABLE QList<QObject*> listVideoStreams(const QStringList path = QStringList()) override;
 
     // PointCloudSourceInterface
-    uint8_t* getPCData() const override;
+    QSharedPointer<PointCloudData> getStreamPCData(const QString device_id) override;
 
 signals:
     void appNotice(QString msg) override;

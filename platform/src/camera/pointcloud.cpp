@@ -37,17 +37,17 @@ PointCloud::PointCloud(QObject *parent) :
     is_geometry_built(false),
     mesh_points_number(0),
     geometry(new QGeometry()),
-    vertex_buffer(new QBuffer(QBuffer::VertexBuffer, geometry)),
+    vertex_buffer(new QBuffer(geometry)),
     vertex_attribute(new QAttribute()),
     vertex_format(QAttribute::Float),
-    color_buffer(new QBuffer(QBuffer::VertexBuffer, geometry)),
+    color_buffer(new QBuffer(geometry)),
     color_attribute(new QAttribute()),
     color_format(QAttribute::UnsignedByte),
-    index_buffer(new QBuffer(QBuffer::IndexBuffer, geometry)),
+    index_buffer(new QBuffer(geometry)),
     index_attribute(new QAttribute()),
     index_number(0),
     index_enabled(Settings::I()->val("UI.Edit.display_mode").toString() != QStringLiteral("POINTS")),
-    options_buffer(new QBuffer(QBuffer::VertexBuffer, geometry)),
+    options_buffer(new QBuffer(geometry)),
     options_attribute(new QAttribute())
 {
     qCDebug(pc) << "Creating empty PointCloud";
@@ -505,8 +505,8 @@ void PointCloud::setVertexAttribute()
 
     vertex_attribute->setAttributeType(QAttribute::VertexAttribute);
     vertex_attribute->setBuffer(vertex_buffer);
-    vertex_attribute->setDataType(static_cast<QAttribute::VertexBaseType>(vertex_format));
-    vertex_attribute->setDataSize(3);
+    vertex_attribute->setVertexBaseType(static_cast<QAttribute::VertexBaseType>(vertex_format));
+    vertex_attribute->setVertexSize(3);
     vertex_attribute->setByteOffset(0);
     vertex_attribute->setByteStride(3 * sizeof(float)); // TODO: Only float supported for now
     vertex_attribute->setCount(mesh_points_number);
@@ -522,8 +522,8 @@ void PointCloud::setColorAttribute()
 
     color_attribute->setAttributeType(QAttribute::VertexAttribute);
     color_attribute->setBuffer(color_buffer);
-    color_attribute->setDataType(static_cast<QAttribute::VertexBaseType>(color_format));
-    color_attribute->setDataSize(4);
+    color_attribute->setVertexBaseType(static_cast<QAttribute::VertexBaseType>(color_format));
+    color_attribute->setVertexSize(4);
     color_attribute->setByteOffset(0);
     color_attribute->setByteStride(4 * sizeof(char)); // TODO: Only byte supported for now
     color_attribute->setCount(mesh_points_number);
@@ -539,8 +539,8 @@ void PointCloud::setIndexAttribute()
 
     index_attribute->setAttributeType(QAttribute::IndexAttribute);
     index_attribute->setBuffer(index_buffer);
-    index_attribute->setDataType(QAttribute::UnsignedInt);
-    index_attribute->setDataSize(1);
+    index_attribute->setVertexBaseType(QAttribute::UnsignedInt);
+    index_attribute->setVertexSize(1);
     index_attribute->setByteOffset(0);
     index_attribute->setByteStride(0);
     index_attribute->setCount(index_number);
@@ -554,8 +554,8 @@ void PointCloud::setOptionsAttribute()
 
     options_attribute->setAttributeType(QAttribute::VertexAttribute);
     options_attribute->setBuffer(options_buffer);
-    options_attribute->setDataType(QAttribute::Int);
-    options_attribute->setDataSize(1);
+    options_attribute->setVertexBaseType(QAttribute::Int);
+    options_attribute->setVertexSize(1);
     options_attribute->setByteOffset(0);
     options_attribute->setByteStride(1 * sizeof(qint32));
     options_attribute->setCount(mesh_points_number);

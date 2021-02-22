@@ -225,15 +225,13 @@ Item {
                 anchors.margins: 3
                 width: stream_fps_text.width + 6
                 height: stream_fps_text.height + 6
-                // TODO: Reenable functionality
-                //color: camera.isStreaming ? "#88008800" : "#88880000"
+                color: monitor.isStreaming ? "#88008800" : "#88880000"
                 radius: 3
                 Text {
                     id: stream_fps_text
                     anchors.centerIn: parent
                     color: "#fff"
-                    // TODO: Reenable functionality
-                    //text: (camera.isStreaming ? camera.streamFPS.toFixed(1) : "0.0") + " fps"
+                    text: (monitor.isStreaming ? monitor.streamFPS.toFixed(1) : "0.0") + " fps"
                 }
             }
 
@@ -244,15 +242,13 @@ Item {
                 anchors.margins: 3
                 width: stream_fwt_text.width + 6
                 height: stream_fwt_text.height + 6
-                // TODO: Reenable functionality
-                //color: camera.isStreaming ? "#88008800" : "#88880000"
+                color: monitor.isStreaming ? "#88008800" : "#88880000"
                 radius: 3
                 Text {
                     id: stream_fwt_text
                     anchors.centerIn: parent
                     color: "#fff"
-                    // TODO: Reenable functionality
-                    //text: (camera.isStreaming ? camera.streamFWT.toFixed(1) : "0.0") + " fwt"
+                    text: (monitor.isStreaming ? monitor.streamFWT.toFixed(1) : "0.0") + " fwt"
                 }
             }
 
@@ -263,15 +259,13 @@ Item {
                 anchors.margins: 3
                 width: stream_fpt_text.width + 6
                 height: stream_fpt_text.height + 6
-                // TODO: Reenable functionality
-                //color: camera.isStreaming ? "#88008800" : "#88880000"
+                color: monitor.isStreaming ? "#88008800" : "#88880000"
                 radius: 3
                 Text {
                     id: stream_fpt_text
                     anchors.centerIn: parent
                     color: "#fff"
-                    // TODO: Reenable functionality
-                    //text: (camera.isStreaming ? camera.streamFPT.toFixed(1) : "0.0") + " fpt"
+                    text: (monitor.isStreaming ? monitor.streamFPT.toFixed(1) : "0.0") + " fpt"
                 }
             }
         }
@@ -294,15 +288,12 @@ Item {
         width: 100
         height: 100
         opacity: 0.5
-        // TODO: Reenable functionality
-        //color: camera.isStreaming ? "#f00" : "#aaa"
+        color: monitor.isStreaming ? "#f00" : "#aaa"
         radius: 50
 
-        // TODO: Reenable functionality
         MouseArea {
             anchors.fill: parent
-            // TODO: Reenable functionality
-            //enabled: camera.isStreaming
+            enabled: monitor.isStreaming
             onPressed: {
                 // TODO: Reenable functionality
                 //camera.makeShot()

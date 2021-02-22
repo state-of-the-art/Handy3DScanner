@@ -10,7 +10,6 @@
 
 Q_LOGGING_CATEGORY(rsdeviceworker, "RealSensePlugin::RSDeviceWorker")
 
-//#include "src/camera/pointcloud.h"
 //#include "src/camera/cameraposition.h"
 //#include "src/settings.h"
 
@@ -76,24 +75,15 @@ void RSDeviceWorker::doWork()
 
     rs2::frameset frames;
 
+    rs2::depth_frame out_depth_frame = rs2::frame();
+    rs2::video_frame out_color_frame = rs2::frame();
+
     try {
         frame_timer.start();
         while( true ) {
             if( m_pipe == nullptr ) {
                 qCWarning(rsdeviceworker) << "Pipeline is not defined";
                 break;
-            }
-
-            frames_time = frame_timer.elapsed();
-            if( frames_time > 1000 ) {
-                qreal time = frames_time/1000.0;
-                emit streamFPS(frames_count/time);
-                emit streamFWT(fwt/1000000.0/time);
-                emit streamFPT(fpt/1000000.0/time);
-                frames_count = 0;
-                fwt = 0;
-                fpt = 0;
-                frame_timer.restart();
             }
 
             fwt_timer.restart();
@@ -106,9 +96,8 @@ void RSDeviceWorker::doWork()
             fwt += fwt_timer.nsecsElapsed();
 
             frames_count++;
-
-            fpt_timer.restart();
             //frames.keep();
+            frames_time = frame_timer.elapsed();
 
             {
                 QMutexLocker locker(&m_mutex);
@@ -119,30 +108,31 @@ void RSDeviceWorker::doWork()
             auto enabled_streams = m_device->getVideoStreams();
 
             for( VideoSourceStreamObject* stream : enabled_streams ) {
+                fpt_timer.restart();
                 if( stream->rs2_stream_type == RS2_STREAM_DEPTH ) {
                     rs2::depth_frame depth_frame = frames.get_depth_frame();
                     if( ! depth_frame )
                         continue;
                     //qCDebug(rsdeviceworker) << "Distance to center:" << depth_frame.get_distance(depth_frame.get_width()/2, depth_frame.get_height()/2);
 
-                    rs2::depth_frame filtered = depth_frame;
+                    out_depth_frame = depth_frame;
 
-                    //filtered = dec_filter.process(filtered);
+                    //out_depth_frame = dec_filter.process(out_depth_frame);
                     if( m_use_disparity_filter )
-                        filtered = depth_to_disparity.process(filtered);
+                        out_depth_frame = depth_to_disparity.process(out_depth_frame);
                     if( m_use_spatial_filter )
-                        filtered = spat_filter.process(filtered);
+                        out_depth_frame = spat_filter.process(out_depth_frame);
                     if( m_use_temporal_filter )
-                        filtered = temp_filter.process(filtered);
+                        out_depth_frame = temp_filter.process(out_depth_frame);
                     if( m_use_disparity_filter )
-                        filtered = disparity_to_depth.process(filtered);
+                        out_depth_frame = disparity_to_depth.process(out_depth_frame);
 
-                    emit stream->newStreamImage(frameToQImage(color_map.colorize(filtered)));
+                    emit stream->newStreamImage(frameToQImage(color_map.colorize(out_depth_frame)));
                 } else if( stream->rs2_stream_type == RS2_STREAM_COLOR ) {
-                    rs2::video_frame frame = frames.get_color_frame();
-                    if( ! frame )
+                    out_color_frame = frames.get_color_frame();
+                    if( ! out_color_frame )
                         continue;
-                    emit stream->newStreamImage(frameToQImage(frame));
+                    emit stream->newStreamImage(frameToQImage(out_color_frame));
                 } else if( stream->rs2_stream_type == RS2_STREAM_INFRARED ) {
                     rs2::video_frame frame = frames.get_infrared_frame();
                     if( ! frame )
@@ -155,30 +145,43 @@ void RSDeviceWorker::doWork()
                     emit stream->newStreamImage(frameToQImage(frame));
                 } else
                     qCWarning(rsdeviceworker) << "Unable to process stream" << rs2_stream_to_string((rs2_stream)stream->rs2_stream_type);
+
+                fpt += fpt_timer.nsecsElapsed();
+
+                if( frames_time > 1000 ) {
+                    qreal time = frames_time/1000.0;
+                    emit stream->fps(frames_count/time);
+                    emit stream->fwt(fwt/1000000.0/time);
+                    emit stream->fpt(fpt/1000000.0/time);
+                }
             }
 
-            fpt += fpt_timer.nsecsElapsed();
-
-            /*if( m_make_shot ) {
+            if( m_make_shot ) {
                 qCDebug(rsdeviceworker) << "Saving pointcloud to memory storage";
 
-                points = pc.calculate(filtered);
+                points = pc.calculate(out_depth_frame);
 
-                rs2::video_frame color = frames.get_color_frame();
-                if( color )
-                    pc.map_to(color);
+                if( out_color_frame )
+                    pc.map_to(out_color_frame);
                 else
                     qCWarning(rsdeviceworker) << "No color frame found";
 
-                PointCloud *pc = toPointCloud(points, depth_frame, color, static_cast<size_t>(filtered.get_width()));
+                PointCloudData *pcdata = toPointCloud(points, out_depth_frame, out_color_frame, static_cast<size_t>(out_depth_frame.get_width()));
 
-                if( pc != nullptr ) {
+                if( pcdata != nullptr ) {
                     m_make_shot = false;
                     // Push object to the parent thread to use it there
-                    pc->moveToThread(m_device->thread());
-                    emit newPointCloud(pc);
+                    //pcdata->moveToThread(m_device->thread());
+                    emit newPointCloudData(pcdata);
                 }
-            }*/
+            }
+
+            if( frames_time >= 1000 ) {
+                frames_count = 0;
+                fwt = 0;
+                fpt = 0;
+                frame_timer.restart();
+            }
         }
     } catch( const rs2::error & e ) {
         emit errorOccurred(e.what());
@@ -190,15 +193,19 @@ void RSDeviceWorker::doWork()
     emit stopped();
 }
 
-/*PointCloud* RSDeviceWorker::toPointCloud(rs2::points points, rs2::depth_frame depth_frame, rs2::video_frame texture, size_t width)
+PointCloudData* RSDeviceWorker::toPointCloud(rs2::points points, rs2::depth_frame depth_frame, rs2::video_frame texture, size_t width)
 {
-    qCDebug(rsworker) << "Creating a new PointCloud object";
+    qCDebug(rsdeviceworker) << "Creating a new PointCloudData object";
     const auto vertices = points.get_vertices();
 
-    PointCloud *out = new PointCloud();
-    out->setShootTime(QDateTime::currentDateTime());
+    PointCloudData *out = new PointCloudData();
+
+    out->shoot_time = QDateTime::currentDateTime();
+    out->name = QString("shot_").append(out->shoot_time.toString("yyyyMMdd_hhmmss"));
+
+    // TODO: Attach orientation & position data
     // Inverting x axis due to realsense z is positive (opengl z is negative)
-    QQuaternion orientation(CameraPosition::I()->getQuaternion());
+    /*QQuaternion orientation(CameraPosition::I()->getQuaternion());
     orientation.setX(-orientation.x());
     out->setOrientation(orientation);
     // Apply the camera offset & inverting x axis
@@ -207,72 +214,66 @@ void RSDeviceWorker::doWork()
                                         float(Settings::I()->val("Camera.Realsense.offset_y").toDouble()),
                                         float(Settings::I()->val("Camera.Realsense.offset_z").toDouble()));
     position.setX(-position.x());
-    out->setPosition(position);
-    out->setName(QString("shot_").append(out->getShootTime().toString("yyyyMMdd_hhmmss")));
+    out->setPosition(position);*/
 
     // Record all the available metadata attributes
     auto device = m_pipe->get_active_profile().get_device();
     for( size_t i = 0; i < RS2_CAMERA_INFO_COUNT; i++ ) {
         if( device.supports(static_cast<rs2_camera_info>(i)) ) {
             QString key(QString("rs2.device.").append(rs2_camera_info_to_string(static_cast<rs2_camera_info>(i))));
-            out->addMetadata(key, QString(device.get_info(static_cast<rs2_camera_info>(i))));
+            out->metadata[key] = QString(device.get_info(static_cast<rs2_camera_info>(i)));
         }
     }
     for( size_t i = 0; i < RS2_FRAME_METADATA_COUNT; i++ ) {
         if( depth_frame.supports_frame_metadata(static_cast<rs2_frame_metadata_value>(i)) ) {
             QString key(QString("rs2.frame.").append(rs2_frame_metadata_to_string(static_cast<rs2_frame_metadata_value>(i))));
-            out->addMetadata(key, QString::number(depth_frame.get_frame_metadata(static_cast<rs2_frame_metadata_value>(i))));
+            out->metadata[key] = QString::number(depth_frame.get_frame_metadata(static_cast<rs2_frame_metadata_value>(i)));
         }
     }
 
-    quint32 points_number = static_cast<quint32>(points.size());
+    out->points_number = points.size();
 
+    // Record height/width for rectangular pointclouds
     if( width == 0 || points.size() % width != 0) {
-        width = points.size();
-        out->setHeight(1);
+        width = out->points_number;
+        out->height = 1;
     } else
-        out->setHeight(points_number / width);
-    out->setWidth(static_cast<quint32>(width));
+        out->height = out->points_number / width;
+    out->width = width;
 
-    out->setPointsNumber(points_number);
+    qCDebug(rsdeviceworker) << "Processing point data";
 
-    qCDebug(rsworker) << "Processing point data";
-
-    QByteArray vertex_buffer;
-    vertex_buffer.reserve(points_number*3*sizeof(float));
-    for( quint32 i = 0; i < points_number; ++i ) {
+    out->points.reserve(out->points_number*3*sizeof(float));
+    for( quint32 i = 0; i < out->points_number; ++i ) {
         // Adding point coordinates
-        vertex_buffer.append(reinterpret_cast<const char *>(&vertices[i].x), sizeof(float)); // X
-        vertex_buffer.append(reinterpret_cast<const char *>(&vertices[i].y), sizeof(float)); // Y
-        vertex_buffer.append(reinterpret_cast<const char *>(&vertices[i].z), sizeof(float)); // Z
+        out->points.append(reinterpret_cast<const char *>(&vertices[i].x), sizeof(float)); // X
+        out->points.append(reinterpret_cast<const char *>(&vertices[i].y), sizeof(float)); // Y
+        out->points.append(reinterpret_cast<const char *>(&vertices[i].z), sizeof(float)); // Z
     }
-    out->setPCPoints(vertex_buffer);
 
-    qCDebug(rsworker) << "Point data is set";
+    qCDebug(rsdeviceworker) << "Point data is set";
 
     if( texture ) {
-        qCDebug(rsworker) << "Processing color data";
-        QByteArray color_buffer;
-        color_buffer.reserve(points_number*4);
+        qCDebug(rsdeviceworker) << "Processing color data";
+        out->colors.reserve(out->points_number*4);
         const auto texcoords = points.get_texture_coordinates();
         const auto texture_data = reinterpret_cast<const uint8_t*>(texture.get_data());
-        for( qint32 i = 0; i < points_number; ++i ) {
+        for( quint32 i = 0; i < out->points_number; ++i ) {
             // Getting point rgb color
             const int w = texture.get_width(), h = texture.get_height();
             int x = std::min(std::max(int(texcoords[i].u*w + .5f), 0), w - 1);
             int y = std::min(std::max(int(texcoords[i].v*h + .5f), 0), h - 1);
             int idx = x * texture.get_bits_per_pixel() / 8 + y * texture.get_stride_in_bytes();
 
-            color_buffer.append(reinterpret_cast<const char *>(&texture_data[idx]), sizeof(uint8_t)); // Red
-            color_buffer.append(reinterpret_cast<const char *>(&texture_data[idx + 1]), sizeof(uint8_t)); // Green
-            color_buffer.append(reinterpret_cast<const char *>(&texture_data[idx + 2]), sizeof(uint8_t)); // Blue
-            color_buffer.append('\xff'); // Alpha
+            out->colors.append(reinterpret_cast<const char *>(&texture_data[idx]), sizeof(uint8_t)); // Red
+            out->colors.append(reinterpret_cast<const char *>(&texture_data[idx + 1]), sizeof(uint8_t)); // Green
+            out->colors.append(reinterpret_cast<const char *>(&texture_data[idx + 2]), sizeof(uint8_t)); // Blue
+            out->colors.append('\xff'); // Alpha
         }
-        out->setPCColor(color_buffer);
     }
 
     return out;
-}*/
+}
 
 QImage RSDeviceWorker::frameToQImage(const rs2::frame& f)
 {
@@ -301,5 +302,3 @@ QImage RSDeviceWorker::frameToQImage(const rs2::frame& f)
         throw std::runtime_error("Frame format is not supported yet!");
     }
 }
-
-

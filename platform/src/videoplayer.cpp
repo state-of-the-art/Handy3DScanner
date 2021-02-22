@@ -12,6 +12,9 @@ VideoPlayer::VideoPlayer()
     , m_stream(nullptr)
     , m_streaming_timer(new QTimer(this))
     , m_is_streaming(false)
+    , m_stream_fps(0.0)
+    , m_stream_fwt(0.0)
+    , m_stream_fpt(0.0)
 {
     // Timer to check that the active stream is ok
     m_streaming_timer->setInterval(1000);
@@ -67,6 +70,9 @@ void VideoPlayer::setStream(QStringList stream_path)
 
     qCDebug(videoplayer) << __func__ << "Connecting the new stream" << plugin << stream_path << m_stream;
     connect(m_stream, SIGNAL(newStreamImage(QImage)), this, SLOT(setImage(QImage)), Qt::QueuedConnection);
+    connect(m_stream, SIGNAL(fps(qreal)), this, SLOT(setStreamFPS(const qreal)), Qt::QueuedConnection);
+    connect(m_stream, SIGNAL(fwt(qreal)), this, SLOT(setStreamFWT(const qreal)), Qt::QueuedConnection);
+    connect(m_stream, SIGNAL(fpt(qreal)), this, SLOT(setStreamFPT(const qreal)), Qt::QueuedConnection);
 }
 
 void VideoPlayer::paint(QPainter *painter) {

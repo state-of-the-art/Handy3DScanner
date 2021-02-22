@@ -10,6 +10,7 @@
 #include <QVariant>
 #include <QMap>
 
+#include "PointCloudData.h"
 #include "VideoSource/VideoSourceStream.h"
 #include "plugins/VideoSourceInterface.h"
 #include "rsdevice.h"
@@ -20,7 +21,7 @@ class RSManager
     Q_OBJECT
 
 public:
-    RSManager();
+    RSManager() {}
     void setup();
     int getConnectedDevicesSize();
 
@@ -31,9 +32,16 @@ public:
     QList<VideoSourceStreamObject*> listVideoStreams(const QStringList path = QStringList()) const;
     rs2::stream_profile getStreamProfile(const QStringList path);
 
+    QSharedPointer<PointCloudData> getStreamPointCloud(const QString device_serial);
+
+signals:
+    void cameraConnected(const QString &serialNumber);
+    void cameraDisconnected(const QString &serialNumber);
+
 private:
     rs2::context m_ctx;
     QMutex m_mutex;
+    QList<RSDevice*> m_device_list;
     QHash<QString, rs2::device> m_connected_devices;
 
     void addDevice(rs2::device& dev);
@@ -41,13 +49,7 @@ private:
 
     RSDevice* getDevice(const QString serial);
 
-    QList<RSDevice*> m_device_list;
-
     void setAvailableStreamsStatus(QVariantMap *map, VideoSourceInterface::stream_status status) const;
-
-signals:
-    void cameraConnected(const QString &serialNumber);
-    void cameraDisconnected(const QString &serialNumber);
 };
 
 #endif // RSMANAGER_H

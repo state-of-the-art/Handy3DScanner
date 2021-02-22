@@ -10,10 +10,6 @@ Q_LOGGING_CATEGORY(rsmanager, "RealSensePlugin::RSManager")
 
 const std::string PLATFORM_CAMERA_NAME = "Platform Camera";
 
-RSManager::RSManager()
-{
-}
-
 void RSManager::setup()
 {
     qCDebug(rsmanager) << "Setting up realsense context...";
@@ -275,4 +271,15 @@ QString RSManager::getDeviceInfo(QString serial, rs2_camera_info field)
         return QString(i.value().get_info(field));
 
     return QString();
+}
+
+QSharedPointer<PointCloudData> RSManager::getStreamPointCloud(const QString device_serial)
+{
+    qCDebug(rsmanager) << __func__ << "Get point cloud for:" << device_serial;
+
+    RSDevice *device = getDevice(device_serial);
+    if( !device )
+        return nullptr;
+
+    return device->getPointCloudData();
 }

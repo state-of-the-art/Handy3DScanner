@@ -21,19 +21,19 @@ Java_com_intel_realsense_librealsense_DeviceWatcher_nRemoveUsbDevice(JNIEnv *env
 JNIEXPORT void JNICALL app_notice(JNIEnv *, jclass, jstring message) {
     QAndroidJniObject msg = message;
     if( RealSensePlugin::s_pInstance != nullptr )
-        RealSensePlugin::s_pInstance->appNotice(msg.toString());
+        emit RealSensePlugin::s_pInstance->appNotice(msg.toString());
 }
 
 JNIEXPORT void JNICALL app_warning(JNIEnv *, jclass, jstring message) {
     QAndroidJniObject msg = message;
     if( RealSensePlugin::s_pInstance != nullptr )
-        RealSensePlugin::s_pInstance->appWarning(msg.toString());
+        emit RealSensePlugin::s_pInstance->appWarning(msg.toString());
 }
 
 JNIEXPORT void JNICALL app_error(JNIEnv *, jclass, jstring message) {
     QAndroidJniObject msg = message;
     if( RealSensePlugin::s_pInstance != nullptr )
-        RealSensePlugin::s_pInstance->appError(msg.toString());
+        emit RealSensePlugin::s_pInstance->appError(msg.toString());
 }
 
 #endif // ANDROID
@@ -104,7 +104,7 @@ bool RealSensePlugin::init()
 
     setInitialized(true);
 
-    appNotice("RealSensePlugin initialized");
+    emit appNotice("RealSensePlugin initialized");
 
     return true;
 }
@@ -153,7 +153,7 @@ bool RealSensePlugin::deinit()
 
     RealSensePlugin::s_pInstance = nullptr;
 
-    appNotice("RealSensePlugin deinitialized");
+    emit appNotice("RealSensePlugin deinitialized");
     qCDebug(plugin) << "deinit() done";
     setInitialized(false);
 
@@ -191,8 +191,8 @@ QList<QObject*> RealSensePlugin::listVideoStreams(const QStringList path)
     return out;
 }
 
-uint8_t *RealSensePlugin::getPCData() const
+QSharedPointer<PointCloudData> RealSensePlugin::getStreamPCData(const QString device_id)
 {
     qCDebug(plugin) << __func__;
-    return nullptr;
+    return m_rsmanager.getStreamPointCloud(device_id);
 }

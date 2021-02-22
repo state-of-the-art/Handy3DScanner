@@ -6,7 +6,6 @@
 
 #include "rsmanager.h"
 
-//#include "camera/pointcloud.h"
 //#include "settings.h"
 
 Q_LOGGING_CATEGORY(rsdevice, "RealSensePlugin::RSDevice")
@@ -23,6 +22,7 @@ RSDevice::RSDevice(RSManager *rsmanager, const QString serial_number)
     , m_isconnected(false)
     , m_isstreaming(false)
     , m_isstarted(false)
+    , m_pcdata()
 {
     qCDebug(rsdevice) << "Create new" << m_serial_number;
     init();
@@ -31,21 +31,13 @@ RSDevice::RSDevice(RSManager *rsmanager, const QString serial_number)
 
     connect(this, &RSDevice::started, &m_generator, &RSDeviceWorker::doWork);
 
-    connect(&m_generator, &RSDeviceWorker::newDepthImage,
-            this, &RSDevice::onNewDepthImage,
+    connect(&m_generator, &RSDeviceWorker::newPointCloudData,
+            this, &RSDevice::onPointCloudData,
             Qt::ConnectionType::QueuedConnection);
-
-    /*connect(&m_generator, &RSDeviceWorker::newPointCloud,
-            this, &RSDevice::onNewPointCloud,
-            Qt::ConnectionType::QueuedConnection);*/
 
     connect(&m_generator, &RSDeviceWorker::stopped, this, &RSDevice::_stop);
 
     //connect(&m_generator, &RSDeviceWorker::errorOccurred, this, &RSDevice::onGeneratorErrorOccurred);
-
-    /*connect(&m_generator, &RSDeviceWorker::streamFPS, this, &RSDevice::setStreamFPS);
-    connect(&m_generator, &RSDeviceWorker::streamFWT, this, &RSDevice::setStreamFWT);
-    connect(&m_generator, &RSDeviceWorker::streamFPT, this, &RSDevice::setStreamFPT);*/
 
     m_generator_thread.start();
 
@@ -60,7 +52,7 @@ RSDevice::~RSDevice()
     deinit();
 }
 
-VideoSourceStreamObject* RSDevice::connectStream(const QStringList path)
+VideoSourceStreamObject* RSDevice::getStream(const QStringList path)
 {
     qCDebug(rsdevice) << __func__ << "Setting stream parameters for path" << path;
 
@@ -69,6 +61,17 @@ VideoSourceStreamObject* RSDevice::connectStream(const QStringList path)
         if( stream->path() == path )
             return stream;
     }
+
+    return nullptr;
+}
+
+VideoSourceStreamObject* RSDevice::connectStream(const QStringList path)
+{
+    qCDebug(rsdevice) << __func__ << "Setting stream parameters for path" << path;
+
+    // Check if stream is already enabled
+    if( VideoSourceStreamObject* stream = getStream(path) )
+        return stream;
 
     rs2::stream_profile sp = m_rsmanager->getStreamProfile(path);
 
@@ -168,7 +171,7 @@ void RSDevice::setIsConnected(const bool val)
 {
     if( m_isconnected != val ) {
         m_isconnected = val;
-        emit m_isconnected ? connected() : disconnected();
+        m_isconnected ? emit connected() : emit disconnected();
     }
 }
 
@@ -176,7 +179,7 @@ void RSDevice::setIsStreaming(const bool val)
 {
     if( m_isstreaming != val ) {
         m_isstreaming = val;
-        emit m_isstreaming ? streaming() : notstreaming();
+        m_isstreaming ? emit streaming() : emit notstreaming();
     }
 }
 
@@ -184,7 +187,7 @@ void RSDevice::setIsStarted(const bool val)
 {
     if( m_isstarted != val ) {
         m_isstarted = val;
-        emit m_isstarted ? started() : stopped();
+        m_isstarted ? emit started() : emit stopped();
     }
 }
 
@@ -235,10 +238,6 @@ void RSDevice::deinit()
         delete m_pipe;
 }
 
-void RSDevice::onNewDepthImage(QImage image)
-{
-    //emit newDepthImage(image);
-}
 
 /*void RSDevice::onNewPointCloud(PointCloud *pc)
 {

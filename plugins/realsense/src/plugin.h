@@ -1,0 +1,50 @@
+#ifndef REALSENSEPLUGIN_H
+#define REALSENSEPLUGIN_H
+
+#include <QObject>
+#include "plugins/VideoSourceInterface.h"
+#include "plugins/PointCloudSourceInterface.h"
+
+#include "VideoSourceStreamObject.h"
+
+class RSManager;
+
+class RealSensePlugin : public QObject, public VideoSourceInterface, public PointCloudSourceInterface
+{
+    Q_OBJECT
+    Q_PLUGIN_METADATA(IID "io.stateoftheart.handy3dscanner.plugins.RealSensePlugin")
+    Q_INTERFACES(VideoSourceInterface PointCloudSourceInterface PluginInterface)
+
+public:
+    RealSensePlugin() : m_rsmanager(nullptr) {}
+    static RealSensePlugin *s_pInstance;
+    ~RealSensePlugin() override {}
+
+    // PluginInterface
+    Q_INVOKABLE QString name() const override;
+    QStringList requirements() const override;
+    bool init() override; // Warning: executing multiple times for each interface
+    bool deinit() override;
+    bool configure() override;
+
+    // VideoSourceInterface
+    Q_INVOKABLE QVariantMap /*<QString,QVariantMap>*/ getAvailableStreams() const override;
+    Q_INVOKABLE VideoSourceStreamObject* getVideoStream(const QStringList path) override;
+    Q_INVOKABLE QList<QObject*> listVideoStreams(const QStringList path = QStringList()) override;
+
+    // PointCloudSourceInterface
+    QSharedPointer<PointCloudData> getStreamPCData(const QString device_id) override;
+    void capturePointCloudShot(const QString device_id) override;
+
+signals:
+    void appNotice(QString msg) override;
+    void appWarning(QString msg) override;
+    void appError(QString msg) override;
+
+    // PointCloudSourceInterface
+    void pointCloudCaptured(const QString device_id, QSharedPointer<PointCloudData> pcdata) override;
+
+private:
+    RSManager *m_rsmanager; // Manager to listen on connected/disconnected cameras
+};
+#endif // REALSENSEPLUGIN_H

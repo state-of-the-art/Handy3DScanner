@@ -1,0 +1,29 @@
+---
+BasedOnStyle:  Google
+
+UseTab:          Never
+ColumnLimit:     120
+IndentWidth:     4
+TabWidth:        4
+AccessModifierOffset: -2
+
+SpaceBeforeParens: Never
+SpacesInConditionalStatement: true
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortBlocksOnASingleLine: Never
+AllowShortFunctionsOnASingleLine: InlineOnly
+
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterClass: true
+  AfterFunction: true
+
+ConstructorInitializerAllOnOneLineOrOnePerLine: false
+BreakInheritanceList: BeforeComma
+BreakConstructorInitializers: BeforeComma
+
+SpaceAfterLogicalNot: true
+
+AllowAllConstructorInitializersOnNextLine: false
+AllowAllParametersOfDeclarationOnNextLine: false
+...

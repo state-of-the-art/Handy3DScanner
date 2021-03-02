@@ -71,15 +71,11 @@ You can find the examples & PCD/glb files on the wiki page: [Example data](https
 * Professional 3d scanners: ~$10'000 - $20'000.
 * Table laser scanners: ~$70 - $500.
 
-With Intel Realsense D415 (~$140) and mobile app we can get a simple and cheap solution to provide a really
-cheap mid-range HD solution with advanced specifications:
+With Intel Realsense D415 (~$140) and mobile app we can get a really cheap mid-range HD scanner solution:
 * Resolution: 1Mpix (1280x720)
 * Frame-rate: 30-60 fps
 * Angle: 63°x40°, 85°x58°
 * Range: 16cm-10m, 11cm-10m
-
-Means that finally for ~$200 users can get simple solution to build second instagram, now in 3D - and the
-last piece is just a userspace software.
 
 ### Plans
 
@@ -121,105 +117,20 @@ if you want to use gyroscope.
 
 #### Build in docker
 
-##### For desktop
-
 1. Clone the repository:
     ```
-    host$ git clone https://github.com/state-of-the-art/Handy3DScanner.git ~/Build/Handy3DScanner
+    $ git clone https://github.com/state-of-the-art/Handy3DScanner.git && mkdir -p out
     ```
-2. Run the docker container:
-    ```
-    host$ cd ~/Build/Handy3DScanner
-    host$ docker run -it --rm --name h3ds-build --volume="${PWD}:/home/user/project" rabits/qt:5.13-desktop
-    ```
-3. Install the required dependencies:
-    ```
-    docker$ sudo apt update
-    docker$ sudo apt install -y libusb-1.0-0-dev
-    ```
-4. Create build directory:
-    ```
-    docker$ mkdir project/build
-    docker$ cd project/build
-    ```
-5. Generate the build scripts
-    ```
-    docker$ cmake .. -G Ninja "-DCMAKE_PREFIX_PATH:PATH=${QT_DESKTOP}"
-    ```
-6. Build the binaries:
-    ```
-    docker$ cmake --build .
-    ```
-7. You can find the compiled binaries in the `build` directory
-
-##### For android
-
-1. Clone the repository:
-    ```
-    host$ git clone https://github.com/state-of-the-art/Handy3DScanner.git ~/Build/Handy3DScanner
-    ```
-2. Run the docker container (use `-armv7` if you need armv7 binaries):
-    ```
-    host$ cd ~/Build/Handy3DScanner
-    host$ docker run -it --rm --name h3ds-build --volume="${PWD}:/home/user/project" rabits/qt:5.13-android-arm64
-    ```
-3. Install the required dependencies (build-essential for boost build system):
-    ```
-    docker$ sudo apt update
-    docker$ sudo apt install -y imagemagick build-essential
-    ```
-4. Create build directory:
-    ```
-    docker$ mkdir project/build
-    docker$ cd project/build
-    ```
-5. Generate the build scripts
-    ```
-    docker$ cmake .. -G Ninja "-DCMAKE_PREFIX_PATH:PATH=${QT_ANDROID}" "-DCMAKE_TOOLCHAIN_FILE:PATH=${ANDROID_NDK_ROOT}/build/cmake/android.toolchain.cmake" "-DANDROID_ABI:STRING=${ANDROID_NDK_TOOLCHAIN_ABI}" -DANDROID_NATIVE_API_LEVEL:STRING=29
-    ```
-6. Build the binaries:
-    ```
-    docker$ cmake --build .
-    ```
-7. Debug APK will be created automatically with help of `tools/build-apk.sh` - and you will see where it's 
-
-#### Build on host
-
-You can use your host:
-
-##### Dependencies
-
-* Ubuntu 18.04 (build is tested only using ubuntu, but you can try something else)
-* CMake 3.10
-* Ninja (optional, but helpful)
-* Qt SDK 5.12 or 5.13
-* build-essential (is needed to build host binaries, even for android boost requires to compile the build system)
-* android:
-  * Android SDK android-29 (actually could be built on 21-29 API levels)
-  * Android NDK r20
-  * Imagemagick (using `convert` to generate png out of svg)
-* desktop:
-  * libusb-1.0-0-dev (on android we using jni interface, but on desktop the native one)
-
-##### Variables
-
-Already set in the docker images, but you need to set them to build on the host system (there is an examples, you need to choose yours):
-
-* `QT_DESKTOP`: "~/local/Qt/5.13.0/gcc_64" - path to the Qt desktop binaries
-* `QT_ANDROID`: "~/local/Qt/5.13.0/android_armv7" - path to the Qt android binaries
-* `ANDROID_NDK_PLATFORM`: "android-29" - what the platform to use while android apk build
-* `ANDROID_NDK_ROOT`: "~/local/android-sdk/ndk-bundle" - path to the Android NDK
-* `ANDROID_NDK_TOOLCHAIN_ABI`: "armeabi-v7a", "arm64-v8a" - binary type
-
-To build the APK for android you need to set the next env variables in addition:
-
-* `ANDROID_SDK_ROOT`: "/opt/android-sdk" - path to the android sdk
-* `ANDROID_NDK_HOST`: "linux-x86_64" - ndk host platform
-* `ANDROID_SDK_BUILD_TOOLS`: "29.0.1" - version of the sdk build-tools will be used
-
-##### Build
-
-Just follow the docker instructions (but without docker) - and you will be good.
+2. Run the docker container and build the project:
+    * Linux desktop `x86_64`:
+        ```
+        $ docker run -it --rm -v "${PWD}/Handy3DScanner:/home/user/project:ro" -v "${PWD}/out:/home/user/out:rw" rabits/qt:5.14-desktop ./project/tool/build-docker-linux.sh
+        ```
+    * Android `multiarch`:
+        ```
+        $ docker run -it --rm -v "${PWD}/Handy3DScanner:/home/user/project:ro" -v "${PWD}/out:/home/user/out:rw" rabits/qt:5.14-android ./project/tool/build-docker-android.sh
+        ```
+3. Results will be placed in the `out` directory
 
 ## Privacy policy
 

@@ -75,3 +75,9 @@ CMakeLists.txt.user*
 # Build directory
 /build*
 /lib/src
+
+# Keystore
+/android.keystore
+
+# plugin standalone builds
+/plugins/build-*

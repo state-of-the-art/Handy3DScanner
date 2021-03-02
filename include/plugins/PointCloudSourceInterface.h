@@ -12,11 +12,19 @@ public:
     static QLatin1String type() { return QLatin1String(PointCloudSourceInterface_iid); }
 
     /**
-     * @brief Receive current point cloud data for specified path
+     * @brief Receive current point cloud data for specified device
      * @param device_id - ID of the device
-     * @return
      */
     virtual QSharedPointer<PointCloudData> getStreamPCData(const QString device_id) = 0;
+
+    /**
+     * @brief Request shot of the pointcloud data
+     * @param device_id - ID of the device
+     */
+    virtual void capturePointCloudShot(const QString device_id) = 0;
+
+signals:
+    virtual void pointCloudCaptured(const QString device_id, QSharedPointer<PointCloudData> pcdata) = 0;
 };
 
 Q_DECLARE_INTERFACE(PointCloudSourceInterface, PointCloudSourceInterface_iid)

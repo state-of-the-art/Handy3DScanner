@@ -95,7 +95,7 @@ VideoSourceStreamObject* RSDevice::connectStream(const QStringList path)
             .arg(m_rsmanager->getDeviceInfo(m_serial_number, RS2_CAMERA_INFO_NAME))
             .arg(m_rsmanager->getDeviceInfo(m_serial_number, RS2_CAMERA_INFO_USB_TYPE_DESCRIPTOR))
             .arg(m_rsmanager->getDeviceInfo(m_serial_number, RS2_CAMERA_INFO_FIRMWARE_VERSION));
-    VideoSourceStreamObject *stream = new VideoSourceStreamObject(path, description, sp.stream_type());
+    VideoSourceStreamObject *stream = new VideoSourceStreamObject(m_rsmanager->pluginName(), path, description, sp.stream_type());
     m_video_streams.append(stream);
 
     restart();
@@ -216,6 +216,12 @@ void RSDevice::makeShot()
         m_generator.makeShot();
 }
 
+void RSDevice::setShotSeries(bool val)
+{
+    if( getIsStreaming() )
+        m_generator.setShotSeries(val);
+}
+
 void RSDevice::init()
 {
     qCDebug(rsdevice) << "Init device" << m_serial_number;
@@ -238,6 +244,11 @@ void RSDevice::deinit()
         delete m_pipe;
 }
 
+void RSDevice::onPointCloudData(PointCloudData *pcdata)
+{
+     m_pcdata = QSharedPointer<PointCloudData>(pcdata);
+     emit pointCloudDataChanged(m_serial_number, m_pcdata);
+}
 
 /*void RSDevice::onNewPointCloud(PointCloud *pc)
 {

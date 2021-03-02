@@ -5,7 +5,9 @@
 #include "plugins/VideoSourceInterface.h"
 #include "plugins/PointCloudSourceInterface.h"
 
-#include "rsmanager.h"
+#include "VideoSourceStreamObject.h"
+
+class RSManager;
 
 class RealSensePlugin : public QObject, public VideoSourceInterface, public PointCloudSourceInterface
 {
@@ -14,6 +16,7 @@ class RealSensePlugin : public QObject, public VideoSourceInterface, public Poin
     Q_INTERFACES(VideoSourceInterface PointCloudSourceInterface PluginInterface)
 
 public:
+    RealSensePlugin() : m_rsmanager(nullptr) {}
     static RealSensePlugin *s_pInstance;
     ~RealSensePlugin() override {}
 
@@ -31,13 +34,17 @@ public:
 
     // PointCloudSourceInterface
     QSharedPointer<PointCloudData> getStreamPCData(const QString device_id) override;
+    void capturePointCloudShot(const QString device_id) override;
 
 signals:
     void appNotice(QString msg) override;
     void appWarning(QString msg) override;
     void appError(QString msg) override;
 
+    // PointCloudSourceInterface
+    void pointCloudCaptured(const QString device_id, QSharedPointer<PointCloudData> pcdata) override;
+
 private:
-    RSManager m_rsmanager; // Manager to listen on connected/disconnected cameras
+    RSManager *m_rsmanager; // Manager to listen on connected/disconnected cameras
 };
 #endif // REALSENSEPLUGIN_H

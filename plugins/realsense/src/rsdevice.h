@@ -39,6 +39,7 @@ public:
     void stop();
     void restart();
     void makeShot();
+    void setShotSeries(bool val);
 
     QList<VideoSourceStreamObject*> getVideoStreams() { return m_video_streams; };
     QSharedPointer<PointCloudData> getPointCloudData() { return m_pcdata; };
@@ -50,9 +51,10 @@ signals:
     void notstreaming();
     void started();
     void stopped();
+    void pointCloudDataChanged(const QString device_id, QSharedPointer<PointCloudData> pcdata);
 
 public slots:
-    void onPointCloudData(PointCloudData *pcdata) { m_pcdata = QSharedPointer<PointCloudData>(pcdata); };
+    void onPointCloudData(PointCloudData *pcdata);
 
 protected:
     void setIsConnected(const bool val);
@@ -75,9 +77,9 @@ private:
     bool m_isstreaming;
     bool m_isstarted;
 
-    void _stop();
-
     QSharedPointer<PointCloudData> m_pcdata;
+
+    void _stop();
 };
 
 #endif // RSDEVICE_H

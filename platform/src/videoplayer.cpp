@@ -1,5 +1,6 @@
 #include "videoplayer.h"
 #include "plugins.h"
+#include "plugins/PointCloudSourceInterface.h"
 
 #include <QDateTime>
 #include <QTimer>
@@ -75,14 +76,49 @@ void VideoPlayer::setStream(QStringList stream_path)
     connect(m_stream, SIGNAL(fpt(qreal)), this, SLOT(setStreamFPT(const qreal)), Qt::QueuedConnection);
 }
 
+void VideoPlayer::makeShot()
+{
+    if( !m_stream )
+        return;
+    QString plugin_name = qobject_cast<VideoSourceStream*>(m_stream)->pluginName();
+    QString device_id = qobject_cast<VideoSourceStream*>(m_stream)->path().first();
+    qCDebug(videoplayer) << __func__ << "Make shot:" << plugin_name << device_id;
+
+    QObject *plugin = Plugins::I()->getPlugin(PointCloudSourceInterface_iid, plugin_name);
+    if( !plugin ) {
+        qCWarning(videoplayer) << __func__ << "Not found the required plugin:" << plugin_name;
+        return;
+    }
+
+    PointCloudSourceInterface *plugin_if = qobject_cast<PointCloudSourceInterface*>(plugin);
+    if( !plugin_if ) {
+        qCWarning(videoplayer) << __func__ << "Incompatible plugin provided:" << plugin;
+        return;
+    }
+
+    if( m_pc_conn )
+        disconnect(m_pc_conn);
+    m_pc_conn = connect(plugin, SIGNAL(pointCloudCaptured(QString, QSharedPointer<PointCloudData>)),
+                        this, SLOT(onPointCloudShot(QString, QSharedPointer<PointCloudData>)));
+
+    plugin_if->capturePointCloudShot(device_id);
+}
+
+void VideoPlayer::onPointCloudShot(const QString device_id, QSharedPointer<PointCloudData> pcdata)
+{
+    disconnect(m_pc_conn);
+
+    qCDebug(videoplayer) << "Received point cloud from" << device_id << pcdata->points_number << pcdata->points.size() << pcdata->colors.size();
+}
+
 void VideoPlayer::paint(QPainter *painter) {
     QRectF bounding_rect = boundingRect();
     QImage scaled = this->m_image.scaledToHeight(bounding_rect.height());
     QPointF center = bounding_rect.center() - scaled.rect().center();
 
-    if(center.x() < 0)
+    if( center.x() < 0 )
         center.setX(0);
-    if(center.y() < 0)
+    if( center.y() < 0 )
         center.setY(0);
 
     painter->drawImage(center, scaled);

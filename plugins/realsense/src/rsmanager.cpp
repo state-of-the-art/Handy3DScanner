@@ -1,17 +1,26 @@
 #include <librealsense2/h/rs_types.h>
 
 #include "rsmanager.h"
+#include "plugin.h"
 
 #include <QMutableHashIterator>
 #include <QDebug>
 #include <QLoggingCategory>
+#include <QTimer>
+#include <QEventLoop>
 
 Q_LOGGING_CATEGORY(rsmanager, "RealSensePlugin::RSManager")
 
 const std::string PLATFORM_CAMERA_NAME = "Platform Camera";
 
-void RSManager::setup()
+QString RSManager::pluginName()
 {
+    return m_plugin->name();
+}
+
+void RSManager::setup(RealSensePlugin *plugin)
+{
+    m_plugin = plugin;
     qCDebug(rsmanager) << "Setting up realsense context...";
     // Register callback for tracking which devices are currently connected
     m_ctx.set_devices_changed_callback([&](rs2::event_information& info) {
@@ -83,6 +92,10 @@ RSDevice* RSManager::getDevice(const QString serial)
 
     RSDevice* device = new RSDevice(this, serial);
     m_device_list.append(device);
+
+    // Connect device "new pcdata" signal to pass it to the plugin
+    connect(device, &RSDevice::pointCloudDataChanged, m_plugin, &RealSensePlugin::pointCloudCaptured);
+
     return device;
 }
 
@@ -108,8 +121,8 @@ QMap<QString, QVariantMap> RSManager::getAvailableStreams() const
         QVariantMap device;
         device["name"] = QString(dev.get_info(RS2_CAMERA_INFO_NAME));
         device["description"] = QString("USB:%2 FW:%3")
-                .arg(dev.get_info(RS2_CAMERA_INFO_USB_TYPE_DESCRIPTOR))
-                .arg(dev.get_info(RS2_CAMERA_INFO_FIRMWARE_VERSION));
+                .arg(dev.get_info(RS2_CAMERA_INFO_USB_TYPE_DESCRIPTOR),
+                     dev.get_info(RS2_CAMERA_INFO_FIRMWARE_VERSION));
         qCDebug(rsmanager) << __func__ << "Found device:" << device["name"] << device["description"];
 
         QVariantMap device_childs;
@@ -230,7 +243,7 @@ rs2::stream_profile RSManager::getStreamProfile(const QStringList path)
     }
 
     QMutexLocker locker(&m_mutex);
-    QHash<QString, rs2::device>::const_iterator it = m_connected_devices.find(path[0]);
+    QHash<QString, rs2::device>::iterator it = m_connected_devices.find(path[0]);
     if( it == m_connected_devices.end() ) {
         qCWarning(rsmanager) << __func__ << "Unable to find connected device:" << path;
         return rs2::stream_profile();
@@ -266,7 +279,7 @@ int RSManager::getConnectedDevicesSize()
 QString RSManager::getDeviceInfo(QString serial, rs2_camera_info field)
 {
     QMutexLocker locker(&m_mutex);
-    QHash<QString, rs2::device>::const_iterator i = m_connected_devices.find(serial);
+    QHash<QString, rs2::device>::iterator i = m_connected_devices.find(serial);
     if( i != m_connected_devices.end() )
         return QString(i.value().get_info(field));
 
@@ -275,11 +288,39 @@ QString RSManager::getDeviceInfo(QString serial, rs2_camera_info field)
 
 QSharedPointer<PointCloudData> RSManager::getStreamPointCloud(const QString device_serial)
 {
-    qCDebug(rsmanager) << __func__ << "Get point cloud for:" << device_serial;
+    qCDebug(rsmanager) << __func__ << "Get existing point cloud for:" << device_serial;
 
     RSDevice *device = getDevice(device_serial);
-    if( !device )
+    if( !device ) {
+        qCWarning(rsmanager) << __func__ << "Unable to find device:" << device_serial;
         return nullptr;
+    }
 
     return device->getPointCloudData();
+}
+
+void RSManager::capturePointCloudShot(const QString device_serial)
+{
+    qCDebug(rsmanager) << __func__ << "Get new point cloud for:" << device_serial;
+
+    RSDevice *device = getDevice(device_serial);
+    if( !device ) {
+        qCWarning(rsmanager) << __func__ << "Unable to find device:" << device_serial;
+        return;
+    }
+
+    device->makeShot();
+}
+
+void RSManager::capturePointCloudShotSeries(const QString device_serial, bool val)
+{
+    qCDebug(rsmanager) << __func__ << "Set point cloud capture to:" << device_serial;
+
+    RSDevice *device = getDevice(device_serial);
+    if( !device ) {
+        qCWarning(rsmanager) << __func__ << "Unable to find device:" << device_serial;
+        return;
+    }
+
+    device->setShotSeries(val);
 }

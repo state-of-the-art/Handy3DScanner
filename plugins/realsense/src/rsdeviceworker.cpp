@@ -18,17 +18,13 @@ Q_LOGGING_CATEGORY(rsdeviceworker, "RealSensePlugin::RSDeviceWorker")
 RSDeviceWorker::RSDeviceWorker(rs2::pipeline *pipe, rs2::frame_queue *queue, RSDevice *device)
     : m_stopped(true)
     , m_make_shot(false)
+    , m_make_shot_series(false)
     , m_mutex()
     , m_pipe(pipe)
     , m_queue(queue)
     , m_device(device)
 {
     qCDebug(rsdeviceworker) << "Init RSDeviceWorker";
-}
-
-void RSDeviceWorker::makeShot()
-{
-    m_make_shot = true;
 }
 
 void RSDeviceWorker::stop()
@@ -127,22 +123,22 @@ void RSDeviceWorker::doWork()
                     if( m_use_disparity_filter )
                         out_depth_frame = disparity_to_depth.process(out_depth_frame);
 
-                    emit stream->newStreamImage(frameToQImage(color_map.colorize(out_depth_frame)));
+                    stream->newStreamImage(frameToQImage(color_map.colorize(out_depth_frame)));
                 } else if( stream->rs2_stream_type == RS2_STREAM_COLOR ) {
                     out_color_frame = frames.get_color_frame();
                     if( ! out_color_frame )
                         continue;
-                    emit stream->newStreamImage(frameToQImage(out_color_frame));
+                    stream->newStreamImage(frameToQImage(out_color_frame));
                 } else if( stream->rs2_stream_type == RS2_STREAM_INFRARED ) {
                     rs2::video_frame frame = frames.get_infrared_frame();
                     if( ! frame )
                         continue;
-                    emit stream->newStreamImage(frameToQImage(frame));
+                    stream->newStreamImage(frameToQImage(frame));
                 } else if( stream->rs2_stream_type == RS2_STREAM_FISHEYE ) {
                     rs2::video_frame frame = frames.get_fisheye_frame();
                     if( ! frame )
                         continue;
-                    emit stream->newStreamImage(frameToQImage(frame));
+                    stream->newStreamImage(frameToQImage(frame));
                 } else
                     qCWarning(rsdeviceworker) << "Unable to process stream" << rs2_stream_to_string((rs2_stream)stream->rs2_stream_type);
 
@@ -150,13 +146,13 @@ void RSDeviceWorker::doWork()
 
                 if( frames_time > 1000 ) {
                     qreal time = frames_time/1000.0;
-                    emit stream->fps(frames_count/time);
-                    emit stream->fwt(fwt/1000000.0/time);
-                    emit stream->fpt(fpt/1000000.0/time);
+                    stream->fps(frames_count/time);
+                    stream->fwt(fwt/1000000.0/time);
+                    stream->fpt(fpt/1000000.0/time);
                 }
             }
 
-            if( m_make_shot ) {
+            if( m_make_shot || m_make_shot_series ) {
                 qCDebug(rsdeviceworker) << "Saving pointcloud to memory storage";
 
                 points = pc.calculate(out_depth_frame);
@@ -251,8 +247,6 @@ PointCloudData* RSDeviceWorker::toPointCloud(rs2::points points, rs2::depth_fram
         out->points.append(reinterpret_cast<const char *>(&vertices[i].z), sizeof(float)); // Z
     }
 
-    qCDebug(rsdeviceworker) << "Point data is set";
-
     if( texture ) {
         qCDebug(rsdeviceworker) << "Processing color data";
         out->colors.reserve(out->points_number*4);
@@ -271,6 +265,8 @@ PointCloudData* RSDeviceWorker::toPointCloud(rs2::points points, rs2::depth_fram
             out->colors.append('\xff'); // Alpha
         }
     }
+
+    qCDebug(rsdeviceworker) << "Completed pcdata composing";
 
     return out;
 }

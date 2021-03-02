@@ -12,7 +12,7 @@ class VideoSourceStreamObject : public QObject, public VideoSourceStream
     Q_INTERFACES(VideoSourceStream)
 
 public:
-    VideoSourceStreamObject(QStringList path, QStringList description, int8_t type);
+    VideoSourceStreamObject(QString plugin_name, QStringList path, QStringList description, int8_t type);
     int8_t rs2_stream_type;
 
 signals:

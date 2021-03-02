@@ -7,6 +7,7 @@
 #include <QtQml/qqml.h>
 
 #include "plugins/VideoSourceInterface.h"
+#include "plugins/PointCloudSourceInterface.h"
 
 class QTimer;
 
@@ -25,6 +26,7 @@ public:
     ~VideoPlayer();
 
     Q_INVOKABLE void setStream(QStringList stream_path);
+    Q_INVOKABLE void makeShot();
     Q_INVOKABLE void reset();
 
     QString currentStream();
@@ -53,6 +55,8 @@ public slots:
     void setStreamFWT(const qreal fwt) { m_stream_fwt = fwt; emit streamFWTChanged(); }
     void setStreamFPT(const qreal fpt) { m_stream_fpt = fpt; emit streamFPTChanged(); }
 
+    void onPointCloudShot(const QString device_id, QSharedPointer<PointCloudData> pcdata);
+
 private:
     QObject *m_stream;
     QImage m_image;
@@ -63,6 +67,8 @@ private:
     qreal m_stream_fps;
     qreal m_stream_fwt;
     qreal m_stream_fpt;
+
+    QMetaObject::Connection m_pc_conn;
 
 private slots:
     void checkStreaming();

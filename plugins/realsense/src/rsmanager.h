@@ -15,6 +15,8 @@
 #include "plugins/VideoSourceInterface.h"
 #include "rsdevice.h"
 
+class RealSensePlugin;
+
 class RSManager
     : public QObject
 {
@@ -22,7 +24,9 @@ class RSManager
 
 public:
     RSManager() {}
-    void setup();
+
+    QString pluginName();
+    void setup(RealSensePlugin *plugin);
     int getConnectedDevicesSize();
 
     QString getDeviceInfo(QString serial, rs2_camera_info field);
@@ -33,12 +37,16 @@ public:
     rs2::stream_profile getStreamProfile(const QStringList path);
 
     QSharedPointer<PointCloudData> getStreamPointCloud(const QString device_serial);
+    void capturePointCloudShot(const QString device_serial);
+    void capturePointCloudShotSeries(const QString device_serial, bool val);
 
 signals:
     void cameraConnected(const QString &serialNumber);
     void cameraDisconnected(const QString &serialNumber);
+    void devicePointCloudCaptured(const QString &serialNumber, QSharedPointer<PointCloudData> pcdata);
 
 private:
+    RealSensePlugin *m_plugin;
     rs2::context m_ctx;
     QMutex m_mutex;
     QList<RSDevice*> m_device_list;

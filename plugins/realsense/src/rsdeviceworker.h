@@ -18,13 +18,16 @@ class RSDeviceWorker
 
 public:
     explicit RSDeviceWorker(rs2::pipeline *pipe, rs2::frame_queue *queue, RSDevice *device);
-    void makeShot();
     void stop();
     void setPipeline(rs2::pipeline *pipe);
+
+    void makeShot() { m_make_shot = true; }
+    void setShotSeries(bool val) { m_make_shot_series = val; }
 
 private:
     bool m_stopped;
     bool m_make_shot;
+    bool m_make_shot_series;
     QMutex m_mutex;
     rs2::pipeline *m_pipe;
     rs2::frame_queue *m_queue;

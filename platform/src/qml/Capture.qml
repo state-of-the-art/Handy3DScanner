@@ -295,22 +295,9 @@ Item {
             anchors.fill: parent
             enabled: monitor.isStreaming
             onPressed: {
-                // TODO: Reenable functionality
-                //camera.makeShot()
+                monitor.makeShot()
                 shot_flash.start()
             }
         }
     }
-
-    // TODO: Reenable functionality
-    /*Connections {
-        id: cameraConnections
-        target: camera
-        onNewDepthImage: monitor.setImage(image)
-        onIsConnectedChanged: {
-            if( camera.isConnected && root_capture.visible )
-                camera.start()
-        }
-        //onErrorOccurred: errorText.text = error
-    }*/
 }

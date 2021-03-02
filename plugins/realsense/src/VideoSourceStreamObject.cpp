@@ -5,9 +5,9 @@
 
 Q_LOGGING_CATEGORY(vsso, "RealSensePlugin::VideoSourceStreamObject")
 
-VideoSourceStreamObject::VideoSourceStreamObject(QStringList path, QStringList description, int8_t type)
+VideoSourceStreamObject::VideoSourceStreamObject(QString plugin_name, QStringList path, QStringList description, int8_t type)
     : QObject()
-    , VideoSourceStream(path, description)
+    , VideoSourceStream(plugin_name, path, description)
     , rs2_stream_type(type)
 {
     qCDebug(vsso) << "Created object" << type;

@@ -1,5 +1,7 @@
 #include "plugin.h"
 
+#include "rsmanager.h"
+
 #include <QVariant>
 #include <QLoggingCategory>
 
@@ -58,7 +60,9 @@ bool RealSensePlugin::init()
     RealSensePlugin::s_pInstance = this;
 
     // Setup the manager
-    m_rsmanager.setup();
+    if( !m_rsmanager )
+        m_rsmanager = new RSManager();
+    m_rsmanager->setup(this);
 
 #ifdef ANDROID
     JavaVM* vm = QAndroidJniEnvironment::javaVM();
@@ -171,7 +175,7 @@ QVariantMap RealSensePlugin::getAvailableStreams() const
     qCDebug(plugin) << __func__;
     QVariantMap out;
 
-    QMap<QString, QVariantMap> data = m_rsmanager.getAvailableStreams();
+    QMap<QString, QVariantMap> data = m_rsmanager->getAvailableStreams();
     for( auto it = data.begin(); it != data.end(); ++it )
         out[it.key()] = it.value();
 
@@ -180,13 +184,13 @@ QVariantMap RealSensePlugin::getAvailableStreams() const
 
 VideoSourceStreamObject* RealSensePlugin::getVideoStream(const QStringList path)
 {
-    return m_rsmanager.getVideoStream(path);
+    return m_rsmanager->getVideoStream(path);
 }
 
 QList<QObject*> RealSensePlugin::listVideoStreams(const QStringList path)
 {
     QList<QObject*> out;
-    for( VideoSourceStreamObject* item : m_rsmanager.listVideoStreams(path) )
+    for( VideoSourceStreamObject* item : m_rsmanager->listVideoStreams(path) )
         out.append(item);
     return out;
 }
@@ -194,5 +198,11 @@ QList<QObject*> RealSensePlugin::listVideoStreams(const QStringList path)
 QSharedPointer<PointCloudData> RealSensePlugin::getStreamPCData(const QString device_id)
 {
     qCDebug(plugin) << __func__;
-    return m_rsmanager.getStreamPointCloud(device_id);
+    return m_rsmanager->getStreamPointCloud(device_id);
+}
+
+void RealSensePlugin::capturePointCloudShot(const QString device_id)
+{
+    qCDebug(plugin) << __func__;
+    m_rsmanager->capturePointCloudShot(device_id);
 }

@@ -1,7 +1,7 @@
 # Librealsense dependency
 
-set(LIBREALSENSE_VERSION "2.20.0")
-set(LIBREALSENSE_HASH "501ba0aaae2b3505060f03775bb0ef7fa889982e")
+set(LIBREALSENSE_VERSION "2.44.0")
+set(LIBREALSENSE_HASH "ad37fe8e8364f2c0533f8c46ccc4a0a3de538656")
 
 if(NOT EXISTS "${CMAKE_SOURCE_DIR}/lib/src/librealsense-${LIBREALSENSE_VERSION}")
     message("Downloading librealsense ${LIBREALSENSE_VERSION} sources")
@@ -9,7 +9,6 @@ if(NOT EXISTS "${CMAKE_SOURCE_DIR}/lib/src/librealsense-${LIBREALSENSE_VERSION}"
     file(MAKE_DIRECTORY "${CMAKE_SOURCE_DIR}/lib/src")
     file(DOWNLOAD "${librealsense_url}" "${CMAKE_SOURCE_DIR}/lib/src/librealsense.tar.gz" EXPECTED_HASH "SHA1=${LIBREALSENSE_HASH}")
     execute_process(COMMAND ${CMAKE_COMMAND} -E tar xf "${CMAKE_SOURCE_DIR}/lib/src/librealsense.tar.gz" WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/lib/src")
-    execute_process(COMMAND patch -p1 -i "${CMAKE_SOURCE_DIR}/lib/librealsense.patch" WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/lib/src/librealsense-${LIBREALSENSE_VERSION}")
 endif()
 
 set(BUILD_GRAPHICAL_EXAMPLES OFF CACHE BOOL "Librealsense option" FORCE)

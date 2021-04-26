@@ -3,9 +3,9 @@
 # URL headers: https://github.com/google-ar/arcore-android-sdk/blob/v${ARCORE_VERSION}/libraries/include/arcore_c_api.h
 
 if(ANDROID)
-    set(ARCORE_VERSION "1.11.0")
-    set(ARCORE_AAR_HASH "360c2a9c7e557e7885ae26a9ee9638357cb4b5c8")
-    set(ARCORE_HEADER_HASH "21eeed44859fab7d377320d624ae8613d269ac6d")
+    set(ARCORE_VERSION "1.23.0")
+    set(ARCORE_AAR_HASH "a50f55889ead2d51607f4b1204907b8164f40050")
+    set(ARCORE_HEADER_HASH "9d21b49f56bd71bf01ff80c65993b7111c7cc27f")
 
     set(arcore_aar_url "https://maven.google.com/com/google/ar/core/${ARCORE_VERSION}/core-${ARCORE_VERSION}.aar")
     set(arcore_header_url "https://raw.githubusercontent.com/google-ar/arcore-android-sdk/v${ARCORE_VERSION}/libraries/include/arcore_c_api.h")

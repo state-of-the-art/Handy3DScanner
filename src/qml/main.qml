@@ -54,6 +54,29 @@ Window {
         }
     }
 
+    Rectangle {
+        id: memory_stat
+        anchors.bottom: parent.bottom
+        anchors.right: parent.right
+        anchors.margins: 3
+        width: memory_stat_text.width + 6
+        height: memory_stat_text.height + 6
+        color: "#88888888"
+        radius: 3
+        Text {
+            id: memory_stat_text
+            anchors.centerIn: parent
+            color: "#fff"
+            text: "available memory"
+        }
+        Timer {
+            interval: 1000
+            running: true
+            repeat: true
+            onTriggered: memory_stat_text.text = Math.floor(osWrapper.getMemAvail() / 1024 / 1024) + " MB"
+        }
+    }
+
     Notification {
         anchors.right: parent.right
         anchors.top: parent.top

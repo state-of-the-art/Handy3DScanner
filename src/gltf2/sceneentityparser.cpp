@@ -692,12 +692,8 @@ std::pair<QString, int> addAttributeToMesh(const Qt3DRender::QAttribute &attribu
     draco::PointAttribute mesh_attribute;
     mesh_attribute.Init(
                 attributeTypeFromName(attribute.name()),
-                nullptr,
                 static_cast<qint8>(attribute.vertexSize()),
-                toDracoDataType<T>::type,
-                false,
-                actualStride<T>(attribute.byteStride(), attribute.vertexSize()),
-                0);
+                toDracoDataType<T>::type, false, 0);
 
     auto att_id = mesh.AddAttribute(mesh_attribute, true, attribute.count());
     if( att_id == -1 )

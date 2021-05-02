@@ -304,21 +304,8 @@ PointCloud* PointCloud::loadPCD(QString filepath)
 void PointCloud::savePCD(QString dirpath)
 {
     qCDebug(pc) << "Saving Point Cloud" << getName() << "to directory" << dirpath;
-#ifndef ANDROID
-    QString filepath = dirpath+"/"+getName()+".pcd";
-    QFile file(filepath);
-    file.open(QIODevice::WriteOnly);
-    if( !file.isWritable() )
-        throw PointCloudException(QString("Unable to write PCD due to file is not writable: %1").arg(filepath));
-#else
-    QFile file;
-    int fd = AndroidWrapper::getFileTreeDescriptor(dirpath, getName()+".pcd", false);
-    if( fd < 0 )
-        throw PointCloudException(QString("Unable to write PCD due to file descriptor is not valid: %1").arg(dirpath));
-    file.open(fd, QFile::WriteOnly);
-#endif
 
-    // Writing header
+    // Preparing header
     bool rgb_available = pc_colors.size() > 0;
     QString header;
     header.append("# .PCD v0.7 - Point Cloud Data file format\n");
@@ -331,7 +318,7 @@ void PointCloud::savePCD(QString dirpath)
         if( key == "version" )
             header.append(QString(PointCloud::METADATA_PREFIX).append("capture_version: %2\n").arg(metadata[key].toString()));
         else
-            header.append(QString(PointCloud::METADATA_PREFIX).append("%1: %2\n").arg(key).arg(metadata[key].toString()));
+            header.append(QString(PointCloud::METADATA_PREFIX).append("%1: %2\n").arg(key, metadata[key].toString()));
     }
 
     // Attaching header PCD info
@@ -345,47 +332,69 @@ void PointCloud::savePCD(QString dirpath)
     header.append(QString("VIEWPOINT %1 %2 %3 %4 %5 %6 %7\n").arg(getPosition().x()).arg(getPosition().y()).arg(getPosition().z())
             .arg(getOrientation().scalar()).arg(getOrientation().x()).arg(getOrientation().y()).arg(getOrientation().z()));
     header.append(QString("POINTS %1\n").arg(points_number));
-    file.write(header.toLatin1());
+
+    QByteArray data;
 
     if( Settings::I()->val("Save.PCD.compress_file").toBool() )
-        writePCDBinaryCompressed(&file);
+        writePCDBinaryCompressed(&data);
     else
-        writePCDBinary(&file);
+        writePCDBinary(&data);
+
+    // Opening file to write after preparation of the data in order to deal with limited memory
+    // otherwise it is going to create file with no information at all.
+#ifdef ANDROID
+    QFile file;
+    int fd = AndroidWrapper::getFileTreeDescriptor(dirpath, getName()+".pcd", false);
+    if( fd < 0 )
+        throw PointCloudException(QString("Unable to write PCD due to file descriptor is not valid: %1").arg(dirpath));
+    file.open(fd, QFile::WriteOnly);
+#else
+    QString filepath = dirpath+"/"+getName()+".pcd";
+    QFile file(filepath);
+    file.open(QIODevice::WriteOnly);
+    if( !file.isWritable() )
+        throw PointCloudException(QString("Unable to write PCD due to file is not writable: %1").arg(filepath));
+#endif
+
+    file.write(header.toLatin1());
+    file.write(data);
 
     file.flush();
     file.close();
+
+    qCDebug(pc) << "Completed write PCD" << getName();
 }
 
-void PointCloud::writePCDBinary(QFile *file) const
+void PointCloud::writePCDBinary(QByteArray *data) const
 {
     bool rgb_available = pc_colors.size() > 0;
-    file->write("DATA binary\n");
+    data->append("DATA binary\n");
 
     // TODO: probably issues with bigendian - use QEndian to fix that.
     for( qint32 i = 0; i < points_number; ++i ) {
         // Writing vertices
-        file->write(pc_points.mid(i*3*4, 3*4)); // X Y Z
+        data->append(pc_points.mid(i*3*4, 3*4)); // X Y Z
 
         if( ! rgb_available )
             continue;
 
         // Getting point rgb color - in PCD it's encoded as bgr due to BigEndian
-        file->write(pc_colors.mid(i*4+2, 1)); // Blue
-        file->write(pc_colors.mid(i*4+1, 1)); // Green
-        file->write(pc_colors.mid(i*4, 1)); // Red
-        file->write(pc_colors.mid(i*4+3, 1)); // Alpha
+        data->append(pc_colors.mid(i*4+2, 1)); // Blue
+        data->append(pc_colors.mid(i*4+1, 1)); // Green
+        data->append(pc_colors.mid(i*4, 1)); // Red
+        data->append(pc_colors.mid(i*4+3, 1)); // Alpha
     }
 }
 
-void PointCloud::writePCDBinaryCompressed(QFile *file) const
+void PointCloud::writePCDBinaryCompressed(QByteArray *data) const
 {
-    file->write("DATA binary_compressed\n");
+    data->append("DATA binary_compressed\n");
 
     // TODO: support something other than float for vertexes
     int vertices_size = points_number * 3*4;
     quint32 data_size = vertices_size + points_number * 4;
     if( data_size * 3 / 2 > std::numeric_limits<qint32>::max() )
-        qCWarning(pc) << "The input data exceeds the maximum size for compressed version 0.7 pcds of"
+        qCWarning(pc) << "The input data exceeds the maximum size for compressed version 0.7 PCDs of"
                       << static_cast<size_t>( std::numeric_limits<qint32>::max() ) * 2 / 3 << " bytes";
 
     // TODO: it's ok if there is less than 156 pointclouds 1280x720 (float points + rgb 3 bytes)
@@ -420,7 +429,7 @@ void PointCloud::writePCDBinaryCompressed(QFile *file) const
     temp_buf.prepend(reinterpret_cast<const char *>(&compressed_size), qint8(sizeof(quint32)));
     temp_buf.resize(compressed_size + 8);
 
-    file->write(temp_buf);
+    data->append(temp_buf);
 }
 
 void PointCloud::setVertexBuffer(const QByteArray &data)

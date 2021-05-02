@@ -77,8 +77,8 @@ public:
     qint32 getHeight() const;
     void setHeight(const qint32 value);
 
-    void writePCDBinary(QFile *file) const;
-    void writePCDBinaryCompressed(QFile *file) const;
+    void writePCDBinary(QByteArray *data) const;
+    void writePCDBinaryCompressed(QByteArray *data) const;
 
     QVector3D getPosition() const;
     QVector3D getObjectPosition() const;

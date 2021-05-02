@@ -185,3 +185,35 @@ int AndroidWrapper::getFileTreeDescriptor(QString basepath, QString name, bool r
 
     return parcelFileDescriptor.callMethod<jint>("getFd", "()I");
 }
+
+qint64 AndroidWrapper::getMemAvail()
+{
+    QAndroidJniObject svc = QAndroidJniObject::getStaticObjectField(
+            "android/content/Context", "ACTIVITY_SERVICE", "Ljava/lang/String;");
+    if( !svc.isValid() ) {
+        qWarning() << Q_FUNC_INFO << "ACTIVITY_SERVICE is unavailable";
+        return -1;
+    }
+
+    QAndroidJniObject ctx = QtAndroid::androidActivity().callObjectMethod(
+            "getApplicationContext", "()Landroid/content/Context;");
+    if( !ctx.isValid() ) {
+        qWarning() << Q_FUNC_INFO << "Got none context";
+        return -1;
+    }
+
+    QAndroidJniObject actmgr = ctx.callObjectMethod("getSystemService",
+            "(Ljava/lang/String;)Ljava/lang/Object;", svc.object<jstring>());
+
+    QAndroidJniObject meminfo("android/app/ActivityManager$MemoryInfo");
+    if( !meminfo.isValid() ){
+        qDebug() << Q_FUNC_INFO << "Got invalid MemoryInfo";
+        return -1;
+    }
+
+    actmgr.callMethod<void>("getMemoryInfo",
+            "(Landroid/app/ActivityManager$MemoryInfo;)V",
+            meminfo.object<jobject>());
+
+    return meminfo.getField<jlong>("availMem");
+}

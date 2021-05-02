@@ -18,6 +18,8 @@ public:
     Q_INVOKABLE QString getFilePath(QString basepath, QString filename);
     Q_INVOKABLE int isAndroidProviderFile(QString path);
 
+    Q_INVOKABLE static qint64 getMemAvail();
+
     static int getFileDescriptor(QString path, bool read_only = true);
     static int getFileTreeDescriptor(QString basepath, QString name, bool read_only = true);
 

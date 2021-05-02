@@ -223,12 +223,12 @@ Item {
             caption: "\uE80D"
             description: "Open pointcloud from file"
             action: function() {
-                fileOpener.filesPicked.connect(filesSelected)
-                fileOpener.choose("openFile")
+                osWrapper.filesPicked.connect(filesSelected)
+                osWrapper.choose("openFile")
             }
 
             function filesSelected(paths) {
-                fileOpener.filesPicked.disconnect(filesSelected)
+                osWrapper.filesPicked.disconnect(filesSelected)
                 for( var path of paths )
                     camera.loadPointCloud(path)
 
@@ -241,12 +241,12 @@ Item {
             caption: "\uE805"
             description: "Save visible pointclouds to files"
             action: function() {
-                fileOpener.dirPicked.connect(dirSelected)
-                fileOpener.choose("selectDirectory")
+                osWrapper.dirPicked.connect(dirSelected)
+                osWrapper.choose("selectDirectory")
             }
 
             function dirSelected(dirpath) {
-                fileOpener.dirPicked.disconnect(dirSelected)
+                osWrapper.dirPicked.disconnect(dirSelected)
                 console.log("Save pointclouds to dir " + dirpath)
 
                 for( var i in selectedPointClouds ) {
@@ -263,12 +263,12 @@ Item {
             caption: "\uF14D"
             description: "Export visible scene to glTF 2.0"
             action: function() {
-                fileOpener.filePicked.connect(fileSelected)
-                fileOpener.choose("saveFile", "scene.glb")
+                osWrapper.filePicked.connect(fileSelected)
+                osWrapper.choose("saveFile", "scene.glb")
             }
 
             function fileSelected(filepath) {
-                fileOpener.filePicked.disconnect(fileSelected)
+                osWrapper.filePicked.disconnect(fileSelected)
                 console.log("Save pointclouds to dir " + filepath)
 
                 var prevViewType = pointCloudView.primitiveViewType

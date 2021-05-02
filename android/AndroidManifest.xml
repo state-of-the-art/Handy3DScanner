@@ -22,7 +22,9 @@
 
     <uses-feature android:name="android.hardware.usb.host"/>
 
-    <application android:hardwareAccelerated="true" android:name="org.qtproject.qt5.android.bindings.QtApplication" android:label="Handy 3D Scanner">
+    <application android:name="org.qtproject.qt5.android.bindings.QtApplication"
+                 android:label="Handy 3D Scanner"
+                 android:hardwareAccelerated="true">
         <activity android:configChanges="orientation|uiMode|screenLayout|screenSize|smallestScreenSize|layoutDirection|locale|fontScale|keyboard|keyboardHidden|navigation|mcc|mnc"
                   android:name="io.stateoftheart.handy3dscanner.Handy3DScannerActivity"
                   android:label="Handy 3D Scanner"

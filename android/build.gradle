@@ -43,7 +43,7 @@ android {
 
     compileSdkVersion androidCompileSdkVersion.toInteger()
 
-    buildToolsVersion androidBuildToolsVersion.toString()
+    buildToolsVersion androidBuildToolsVersion ? androidBuildToolsVersion.toString() : '28.0.2'
 
     sourceSets {
         main {

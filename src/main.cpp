@@ -98,9 +98,9 @@ int main(int argc, char *argv[])
     // TODO: H3DS-27 Create universal built-in file/dir picker
 #ifdef ANDROID
     engine.rootContext()->setContextProperty("arcore", ARCore::I());
-    engine.rootContext()->setContextProperty("fileOpener", AndroidWrapper::I());
+    engine.rootContext()->setContextProperty("osWrapper", AndroidWrapper::I());
 #else
-    engine.rootContext()->setContextProperty("fileOpener", LinuxWrapper::I());
+    engine.rootContext()->setContextProperty("osWrapper", LinuxWrapper::I());
 #endif
 
     QFontDatabase fontDatabase;

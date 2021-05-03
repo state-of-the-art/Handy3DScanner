@@ -6,6 +6,7 @@
 
 #include "src/camera/pointcloud.h"
 #include "src/settings.h"
+#include "src/application.h"
 
 Q_LOGGING_CATEGORY(rscamera, "RSCamera")
 
@@ -79,7 +80,13 @@ void RSCamera::start()
             qCWarning(rscamera) << "Unable to start pipe with the current configuration:" << e.what();
             qCWarning(rscamera) << "Disabling the color stream and retry";
             m_config.disable_stream(RS2_STREAM_COLOR);
-            m_profile = m_pipe->start(m_config);
+            try {
+                m_profile = m_pipe->start(m_config);
+            } catch( rs2::error e ) {
+                Application::I()->error("Unable to start pipeline for this camera. Please report to developer");
+                setIsStreaming(false);
+                return;
+            }
         }
         qCDebug(rscamera) << "get serial";
         m_scanningDeviceSerial = m_profile.get_device().get_info(RS2_CAMERA_INFO_SERIAL_NUMBER);

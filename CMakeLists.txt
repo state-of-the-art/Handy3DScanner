@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(handy3dscanner LANGUAGES CXX VERSION 0.5.2)
+project(handy3dscanner LANGUAGES CXX VERSION 0.5.3)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 

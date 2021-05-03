@@ -169,9 +169,13 @@ void RSCamera::onCameraConnected(const QString &serialNumber)
 
     // Checking usb speed
     if( usb_version.toFloat() < 3.0f ) {
-        m_config.enable_stream(RS2_STREAM_DEPTH, 1280, 720, RS2_FORMAT_Z16, 6);
+        int fr = 6;
+        // D455 is not support the 6fps output, so this improper fix for now
+        if( m_cameraManager.getCameraInfo(serialNumber, RS2_CAMERA_INFO_NAME).contains("D455") )
+            fr = 5;
+        m_config.enable_stream(RS2_STREAM_DEPTH, 1280, 720, RS2_FORMAT_Z16, fr);
         if( Settings::I()->value("Camera.Streams.enable_color_stream").toBool() )
-            m_config.enable_stream(RS2_STREAM_COLOR, 1280, 720, RS2_FORMAT_RGB8, 6);
+            m_config.enable_stream(RS2_STREAM_COLOR, 1280, 720, RS2_FORMAT_RGB8, fr);
     } else {
         m_config.enable_stream(RS2_STREAM_DEPTH, 1280, 720, RS2_FORMAT_Z16, 30);
         if( Settings::I()->value("Camera.Streams.enable_color_stream").toBool() )

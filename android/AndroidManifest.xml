@@ -8,7 +8,7 @@
                                ||**    - minor version %02d
                                **      - major version %02d -->
 
-    <uses-sdk android:minSdkVersion="21" android:targetSdkVersion="28"/>
+    <uses-sdk android:minSdkVersion="21" android:targetSdkVersion="29"/>
     <supports-screens android:largeScreens="true" android:normalScreens="true" android:anyDensity="true" android:smallScreens="true"/>
 
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
